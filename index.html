@@ -92,6 +92,30 @@ h2{font-size:clamp(32px,4.5vw,52px);font-weight:800;margin:10px 0 16px;max-width
 .plan.hl .btn-o{border-color:#fff;color:#fff}
 @media(max-width:900px){.plans{grid-template-columns:1fr}.plan.hl{transform:none}}
 .allin{margin-top:26px;text-align:center;color:var(--muted);font-size:15px}
+.addons{margin:0 0 18px}
+.addons .adt{font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin:0 0 8px 2px}
+.plan.hl .addons .adt{color:#a9a8b2}
+.addons label{display:flex;gap:10px;align-items:center;padding:9px 12px;border:1.5px solid var(--line);border-radius:12px;margin-bottom:6px;cursor:pointer;font-size:14px;font-weight:600;transition:border-color .15s,background .15s}
+.addons label b{margin-left:auto;white-space:nowrap}
+.addons label:has(input:checked){border-color:var(--coral);background:#FFF1EC}
+.plan.hl .addons label{border-color:#2f3140}
+.plan.hl .addons label:has(input:checked){border-color:var(--coral);background:#2a1f1d}
+.addons input{accent-color:var(--coral);width:17px;height:17px;flex:none}
+.addons .tot{font-size:13px;font-weight:700;margin:8px 2px 0;color:var(--coral)}
+.ent{margin-top:22px;background:#fff;border:2px solid var(--ink);border-radius:26px;padding:32px;display:grid;grid-template-columns:1.1fr 1.3fr auto;gap:30px;align-items:center;position:relative}
+.ent .badge{position:absolute;top:-13px;left:26px;background:var(--ink);color:#fff;font-size:12px;font-weight:800;padding:5px 12px;border-radius:999px;letter-spacing:.5px}
+.ent h3{font-size:30px}.ent .for{color:var(--muted);font-size:14px;margin-top:2px}
+.ent .q{font:800 26px 'Bricolage Grotesque';margin:14px 0 8px}
+.ent p{color:#44444b}
+.ent ul{list-style:none;columns:2;column-gap:24px}
+.ent li{padding:5px 0 5px 26px;position:relative;font-size:15px;break-inside:avoid}
+.ent li:before{content:"✓";position:absolute;left:0;color:var(--mint);font-weight:800}
+.ent .btn{padding:16px 28px;font-size:16px;letter-spacing:.5px}
+@media(max-width:900px){.ent{grid-template-columns:1fr;padding:26px 22px;gap:18px}.ent ul{columns:1}.ent .btn{justify-content:center}}
+.exs{margin:6px 0 4px}.exs .adt{font-size:12px;font-weight:700;color:#55545b;margin:0 0 6px 2px}
+.exs label{display:flex;gap:10px;align-items:center;background:#fff;border:2px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:6px;cursor:pointer;font-weight:600;font-size:14px}
+.exs label b{margin-left:auto}.exs label:has(input:checked){border-color:var(--coral)}
+.exs input{accent-color:var(--coral);width:17px;height:17px}
 /* faq */
 .faq{max-width:820px;margin-top:36px}
 details{background:var(--card);border:1px solid var(--line);border-radius:16px;margin-bottom:10px;padding:0 22px}
@@ -222,7 +246,8 @@ dialog::backdrop{background:rgba(19,20,27,.6);backdrop-filter:blur(3px)}
   <h2>Tre pacchetti, tutto incluso.</h2>
   <p class="sub">Nessun abbonamento nascosto, nessun costo per ospite. Paghi una volta e usi tutte le funzioni.</p>
   <div class="plans" id="plans"></div>
-  <p class="allin">Prezzi IVA esclusa · Fattura elettronica inclusa · Ti serve di più? <a href="#contatti"><b>Chiedi un preventivo su misura</b></a></p>
+  <div class="ent" id="ent"></div>
+  <p class="allin">Prezzi IVA esclusa · Fattura elettronica inclusa · Ti serve di più? <a href="#ent"><b>Chiedi un preventivo su misura</b></a></p>
 </div></section>
 
 <section id="faq" style="padding-top:20px"><div class="wrap">
@@ -276,6 +301,7 @@ dialog::backdrop{background:rgba(19,20,27,.6);backdrop-filter:blur(3px)}
       <div class="f"><label>PEC</label><input id="o_pec" type="email"></div>
       <div class="f full"><label>Indirizzo di fatturazione *</label><input id="o_ind" placeholder="Via, civico, CAP, città, provincia" autocomplete="street-address"></div>
     </div>
+    <div class="exs" id="exs"></div>
     <div class="pay">
       <label id="payPP"><input type="radio" name="pm" value="PAYPAL"> PayPal / Carta</label>
       <label><input type="radio" name="pm" value="BONIFICO"> Bonifico bancario</label>
@@ -289,7 +315,19 @@ dialog::backdrop{background:rgba(19,20,27,.6);backdrop-filter:blur(3px)}
 
 <script>
 const C = window.VARCO;
-let PLANS = C.PLANS, cur = 'PRO', order = null;
+let PLANS = C.PLANS, ADDONS = C.ADDONS || [], cur = 'PRO', order = null;
+const SEL = {};
+PLANS.forEach(p => SEL[p.id] = new Set());
+const fmtN = n => Number(n).toLocaleString('it-IT');
+function baseEmails(p) { const m = (p.limits || []).join(' ').match(/Max ([\d.]+) email/); return m ? +m[1].replace(/\./g, '') : 0; }
+function selTot(id) {
+  const p = PLANS.find(x => x.id === id), ex = ADDONS.filter(a => SEL[id].has(a.id));
+  return { price: p.price + ex.reduce((s, a) => s + a.price, 0), emails: baseEmails(p) + ex.reduce((s, a) => s + a.emails, 0), ex };
+}
+function totLine(id) {
+  const t = selTot(id);
+  return t.ex.length ? `Totale €${fmtN(t.price)} + IVA · ${fmtN(t.emails)} email in tutto` : '';
+}
 
 document.querySelectorAll('[data-brand]').forEach(e => e.textContent = C.BRAND);
 document.querySelectorAll('[data-payoff]').forEach(e => e.textContent = C.PAYOFF + '. Check-in ospiti con lista digitale e QR code per agenzie, aziende e privati.');
@@ -303,11 +341,26 @@ function renderPlans() {
       <div class="price">€${p.price}<small> ${esc(p.note)}</small></div>
       <div class="vatn">+ IVA ${C.VAT}% · ${euro(p.price * (1 + C.VAT / 100))} totale</div>
       <div class="lim">${p.limits.map(l => `<div>${esc(l)}</div>`).join('')}</div>
+      ${ADDONS.length ? `<div class="addons" data-plan="${p.id}"><div class="adt">Email extra</div>${ADDONS.map(a => `<label><input type="checkbox" data-ad="${a.id}" ${SEL[p.id].has(a.id) ? 'checked' : ''}> ${esc(a.label)} <b>€ ${fmtN(a.price)}</b></label>`).join('')}<div class="tot" id="tot_${p.id}">${totLine(p.id)}</div></div>` : ''}
       <ul>${p.features.map(f => `<li>${esc(f)}</li>`).join('')}</ul>
       <button class="btn ${p.highlight ? 'btn-c' : 'btn-o'}" onclick="openBuy('${p.id}')">Acquista ${esc(p.name)}</button>
     </div>`).join('');
 }
 renderPlans();
+document.getElementById('plans').addEventListener('change', e => {
+  const box = e.target.closest('.addons'); if (!box || !e.target.dataset.ad) return;
+  const id = box.dataset.plan; e.target.checked ? SEL[id].add(e.target.dataset.ad) : SEL[id].delete(e.target.dataset.ad);
+  document.getElementById('tot_' + id).textContent = totLine(id);
+});
+function renderEnt() {
+  const E = C.ENTERPRISE; if (!E) return;
+  const mail = 'mailto:' + E.email + '?subject=' + encodeURIComponent('Richiesta preventivo ' + C.BRAND + ' ' + E.name) + '&body=' + encodeURIComponent('Buongiorno,\nvorrei ricevere un preventivo per il servizio ' + C.BRAND + ' ' + E.name + '.\n\nTipo di evento:\nData e luogo:\nNumero di ospiti previsti:\nNumero di ingressi:\nServizi richiesti (hostess, dispositivi, stampa badge, ...):\n\nNome e azienda:\nTelefono:\n\nGrazie');
+  document.getElementById('ent').innerHTML = `<span class="badge">SERVIZIO GESTITO</span>
+    <div><h3>${esc(E.name)}</h3><div class="for">${esc(E.for)}</div><div class="q">Preventivo dedicato</div><p>${esc(E.text)}</p></div>
+    <ul>${E.features.map(f => `<li>${esc(f)}</li>`).join('')}</ul>
+    <a class="btn btn-c" href="${mail}">CONTATTACI →</a>`;
+}
+renderEnt();
 
 const FAQ = [
   ['Devo installare qualcosa?', 'No. Funziona da browser su PC, Mac, smartphone, iPhone, iPad e tablet Android. Se vuoi puoi aggiungere l\'app alla schermata Home per aprirla come un\'app normale.'],
@@ -315,6 +368,7 @@ const FAQ = [
   ['Come carico la lista ospiti?', 'Da un file Excel o CSV: trascini il file, il sistema riconosce le colonne (nome, cognome, email, telefono…) e ti fa abbinare le altre. Puoi anche scaricare il nostro modello o aggiungere ospiti a mano.'],
   ['Posso aggiungere campi come intolleranze, tavolo o note?', 'Sì, i campi sono illimitati e li crei tu: testo, numero, sì/no o scelta da elenco. Puoi decidere quali mostrare all\'ingresso e quali evidenziare in rosso (es. allergie o VIP).'],
   ['Come ricevono il QR code gli ospiti?', 'In tre modi: email personalizzata con il QR dentro, link al pass digitale da mandare su WhatsApp, oppure badge e inviti in PDF da stampare o allegare.'],
+  ['Quante email posso inviare agli ospiti?', 'Ogni pacchetto include un numero massimo di email di invito: Start 500, Pro 1.500, Business 5.000. Al momento dell\'acquisto puoi aggiungere pacchetti da 250, 500 o 1.000 email extra. I link WhatsApp e i badge PDF non consumano email.'],
   ['Quanti dispositivi posso usare all\'ingresso?', 'Dipende dal pacchetto (3, 10 o fino a 50). Tutti i dispositivi sono sincronizzati: se un ospite entra dall\'ingresso A, l\'ingresso B lo vede come già entrato.'],
   ['E se all\'evento manca internet?', 'L\'app scarica la lista sul dispositivo e continua a funzionare anche offline. I check-in vengono salvati e sincronizzati appena torna la connessione. Consigliamo comunque un hotspot di riserva se usi più ingressi.'],
   ['Serve un lettore QR?', 'No, basta la fotocamera di smartphone o tablet. Se preferisci, su PC funziona anche con i lettori barcode USB o Bluetooth.'],
@@ -336,6 +390,7 @@ document.getElementById('lt').href = C.LEGAL.terms; document.getElementById('lp'
 // prezzi reali dal server (se configurato)
 if (C.API_URL) api('getPlans').then(d => {
   PLANS = PLANS.map(p => d.plans[p.id] ? Object.assign({}, p, { price: d.plans[p.id].price }) : p);
+  if (d.addons) ADDONS = ADDONS.map(a => d.addons[a.id] ? Object.assign({}, a, { price: d.addons[a.id].price, emails: d.addons[a.id].emails }) : a);
   renderPlans();
 }).catch(() => {});
 
@@ -348,21 +403,29 @@ else document.querySelector('[name=pm][value=PAYPAL]').checked = true;
 function openBuy(id) {
   cur = id;
   $('pick').innerHTML = PLANS.map(p => `<label><input type="radio" name="pl" value="${p.id}" ${p.id === id ? 'checked' : ''}>${esc(p.name)}<small>€${p.price} + IVA</small></label>`).join('');
-  document.querySelectorAll('[name=pl]').forEach(r => r.onchange = () => { cur = r.value; summary(); });
+  document.querySelectorAll('[name=pl]').forEach(r => r.onchange = () => { cur = r.value; drawExs(); summary(); });
+  drawExs();
   $('step1').hidden = false; $('step2').hidden = true; $('err1').style.display = 'none';
   $('dTitle').textContent = 'Completa l\'acquisto';
   summary();
   buy.showModal();
 }
+function drawExs() {
+  $('exs').innerHTML = ADDONS.length ? `<div class="adt">Email extra (facoltative)</div>` + ADDONS.map(a => `<label><input type="checkbox" data-ex="${a.id}" ${SEL[cur].has(a.id) ? 'checked' : ''}> ${esc(a.label)} <b>€ ${fmtN(a.price)} + IVA</b></label>`).join('') : '';
+  $('exs').querySelectorAll('[data-ex]').forEach(c => c.onchange = () => { c.checked ? SEL[cur].add(c.dataset.ex) : SEL[cur].delete(c.dataset.ex); summary(); renderPlans(); });
+}
 function summary() {
-  const p = PLANS.find(x => x.id === cur), iva = Math.round(p.price * C.VAT) / 100;
-  $('sum').innerHTML = `<div><span>${C.BRAND} ${esc(p.name)}</span><span>${euro(p.price)}</span></div><div><span>IVA ${C.VAT}%</span><span>${euro(iva)}</span></div><div class="t"><span>Totale</span><span>${euro(p.price + iva)}</span></div>`;
+  const p = PLANS.find(x => x.id === cur), t = selTot(cur), iva = Math.round(t.price * C.VAT) / 100;
+  $('sum').innerHTML = `<div><span>${C.BRAND} ${esc(p.name)}</span><span>${euro(p.price)}</span></div>` +
+    t.ex.map(a => `<div><span>${esc(a.label)}</span><span>${euro(a.price)}</span></div>`).join('') +
+    `<div><span>IVA ${C.VAT}%</span><span>${euro(iva)}</span></div><div class="t"><span>Totale</span><span>${euro(t.price + iva)}</span></div>` +
+    (baseEmails(p) ? `<div style="font-size:13px;color:var(--muted)"><span>Email incluse</span><span>${fmtN(t.emails)}</span></div>` : '');
 }
 function showErr(m) { const e = $('err1'); e.textContent = m; e.style.display = 'block'; e.scrollIntoView({ block: 'nearest' }); }
 
 $('go').onclick = async () => {
   const d = {
-    plan: cur, nome: $('o_nome').value, email: $('o_email').value, telefono: $('o_tel').value,
+    plan: cur, extras: [...SEL[cur]], nome: $('o_nome').value, email: $('o_email').value, telefono: $('o_tel').value,
     piva: $('o_piva').value, cf: $('o_cf').value, sdi: $('o_sdi').value, pec: $('o_pec').value,
     indirizzo: $('o_ind').value, privacy: $('o_priv').checked,
     metodo: (document.querySelector('[name=pm]:checked') || {}).value || 'BONIFICO'
@@ -414,7 +477,7 @@ async function payPal() {
     paypal.Buttons({
       style: { shape: 'pill', label: 'pay', height: 48 },
       createOrder: (data, actions) => actions.order.create({
-        purchase_units: [{ amount: { value: order.totale, currency_code: C.CURRENCY }, custom_id: order.orderId, description: C.BRAND + ' ' + order.plan.name }]
+        purchase_units: [{ amount: { value: order.totale, currency_code: C.CURRENCY }, custom_id: order.orderId, description: C.BRAND + ' ' + order.plan.name + (SEL[cur].size ? ' + email extra' : '') }]
       }),
       onApprove: async (data, actions) => {
         $('ppb').innerHTML = '<p style="text-align:center">Conferma in corso…</p>';
