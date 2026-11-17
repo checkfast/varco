@@ -1,0 +1,830 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Dashboard · Varco</title>
+<meta name="theme-color" content="#13141B">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script src="config.js"></script>
+<style>
+:root{--ink:#13141B;--paper:#F6F3EE;--card:#fff;--coral:#FF5A36;--coral-d:#E2421F;--mint:#16B37E;--amber:#F2A516;--red:#E5484D;--line:#E6E0D6;--muted:#6E6D74;--soft:#FBF9F6}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Manrope,system-ui,sans-serif;background:var(--paper);color:var(--ink);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:'Bricolage Grotesque',Manrope,sans-serif;letter-spacing:-.02em;line-height:1.1}
+button,input,select,textarea{font:inherit;color:inherit}
+[hidden]{display:none!important}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:0;cursor:pointer;font-weight:700;font-size:14px;padding:10px 16px;border-radius:12px;background:#ECE7DF;white-space:nowrap;text-decoration:none;color:var(--ink)}
+.btn:hover{filter:brightness(.97)}.btn:disabled{opacity:.5;cursor:default}
+.btn.c{background:var(--coral);color:#fff}.btn.i{background:var(--ink);color:#fff}.btn.g{background:transparent;border:1.5px solid var(--line)}
+.btn.r{background:#FDE8E8;color:#B42318}.btn.sm{padding:7px 11px;font-size:13px;border-radius:10px}
+.inp,select.inp,textarea.inp{width:100%;padding:11px 13px;border:1.5px solid var(--line);border-radius:12px;background:#fff;outline:0}
+.inp:focus{border-color:var(--ink)}
+label.l{display:block;font-size:12px;font-weight:700;color:#5b5a61;margin:0 0 5px 2px}
+.f{margin-bottom:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:22px}
+.muted{color:var(--muted)}.small{font-size:13px}
+.logo{display:flex;align-items:center;gap:10px;font:800 21px 'Bricolage Grotesque';text-decoration:none;color:inherit}
+.logo i{width:28px;height:28px;border-radius:8px;background:var(--ink);position:relative;display:block}
+.logo i:before,.logo i:after{content:"";position:absolute;top:7px;bottom:7px;width:4px;border-radius:3px;background:var(--coral)}
+.logo i:before{left:8px}.logo i:after{right:8px;background:#fff}
+/* auth */
+.auth{min-height:100vh;display:grid;grid-template-columns:1fr 1fr}
+.auth .side{background:var(--ink);color:#fff;padding:48px;display:flex;flex-direction:column;justify-content:space-between}
+.auth .side .logo i{background:#fff}
+.auth .side h1{font-size:clamp(34px,4vw,54px);font-weight:800}.auth .side h1 em{font-style:normal;color:var(--coral)}
+.auth .main{display:grid;place-items:center;padding:30px 20px}
+.abox{width:100%;max-width:400px}
+.tabs2{display:flex;background:#ECE7DF;border-radius:14px;padding:4px;margin:20px 0}
+.tabs2 button{flex:1;border:0;background:none;padding:10px;border-radius:10px;font-weight:700;cursor:pointer}
+.tabs2 button.on{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+@media(max-width:860px){.auth{grid-template-columns:1fr}.auth .side{padding:28px 22px}.auth .side .big{display:none}}
+/* app */
+.top{background:var(--ink);color:#fff;position:sticky;top:0;z-index:20}
+.top .in{max-width:1240px;margin:auto;display:flex;align-items:center;justify-content:space-between;padding:12px 20px;gap:12px}
+.top .logo i{background:#fff}
+.umenu{position:relative}
+.umenu>button{background:#22242e;border:0;color:#fff;border-radius:999px;padding:8px 14px;font-weight:700;cursor:pointer;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dd{position:absolute;right:0;top:46px;background:#fff;color:var(--ink);border-radius:14px;box-shadow:0 20px 50px rgba(0,0,0,.2);min-width:220px;padding:6px;z-index:30}
+.dd button,.dd a{display:block;width:100%;text-align:left;background:none;border:0;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:600;text-decoration:none;color:inherit}
+.dd button:hover,.dd a:hover{background:var(--paper)}
+main{max-width:1240px;margin:auto;padding:26px 20px 80px}
+.hello h1{font-size:34px;font-weight:800}
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:repeat(3,1fr)}
+@media(max-width:900px){.g2,.g3{grid-template-columns:1fr}}
+.lic{display:flex;justify-content:space-between;gap:10px;padding:12px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.lic:last-child{border:0}
+.pill{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:800;background:#ECE7DF}
+.pill.ok{background:#DDF5EB;color:#0B7A53}.pill.no{background:#FDE8E8;color:#B42318}.pill.w{background:#FFF1D6;color:#8A5A00}
+.evs{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:16px;margin-top:16px}
+.ev{background:#fff;border:1px solid var(--line);border-radius:20px;padding:20px;cursor:pointer;transition:transform .15s,box-shadow .15s;position:relative;overflow:hidden}
+.ev:hover{transform:translateY(-2px);box-shadow:0 14px 30px -18px rgba(0,0,0,.3)}
+.ev:before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--coral)}
+.ev h3{font-size:21px;margin-bottom:6px}
+.empty{text-align:center;padding:50px 20px;border:2px dashed var(--line);border-radius:20px;color:var(--muted)}
+.rowb{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+/* event */
+.evh{display:flex;gap:16px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;margin-bottom:18px}
+.evh h1{font-size:30px;font-weight:800}
+.back{background:none;border:0;cursor:pointer;font-weight:700;color:var(--muted);margin-bottom:8px;padding:0}
+.codebox{background:var(--ink);color:#fff;border-radius:16px;padding:10px 16px;display:flex;gap:18px;align-items:center}
+.codebox b{font:800 20px 'Bricolage Grotesque';letter-spacing:2px}
+.codebox span{font-size:11px;opacity:.6;display:block;letter-spacing:1px}
+.tabs{display:flex;gap:4px;border-bottom:1.5px solid var(--line);margin-bottom:20px;overflow-x:auto;scrollbar-width:none}
+.tabs button{background:none;border:0;padding:12px 16px;font-weight:700;cursor:pointer;color:var(--muted);border-bottom:3px solid transparent;margin-bottom:-1.5px;white-space:nowrap}
+.tabs button.on{color:var(--ink);border-color:var(--coral)}
+.tool{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.tool .inp{width:auto;flex:1;min-width:180px}
+.stats{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.stat{background:#fff;border:1px solid var(--line);border-radius:14px;padding:8px 14px;font-size:13px}
+.stat b{font-size:17px;margin-right:4px}
+.bulk{background:var(--ink);color:#fff;border-radius:14px;padding:10px 14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.bulk .btn{background:#2a2c38;color:#fff}
+table.gt{width:100%;border-collapse:separate;border-spacing:0;background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.gt th{text-align:left;font-size:12px;color:var(--muted);font-weight:700;padding:11px 12px;background:var(--soft);border-bottom:1px solid var(--line);white-space:nowrap}
+.gt td{padding:11px 12px;border-bottom:1px solid #F0EBE3;vertical-align:middle}
+.gt tr:last-child td{border-bottom:0}
+.gt tbody tr{cursor:pointer}.gt tbody tr:hover td{background:#FFFBF7}
+.gt .nm{font-weight:700}.gt input[type=checkbox]{width:17px;height:17px;accent-color:var(--coral)}
+.alertc{color:#B42318;font-weight:700}
+@media(max-width:760px){
+ .gt thead{display:none}.gt,.gt tbody,.gt tr,.gt td{display:block;width:100%}
+ .gt tr{border-bottom:1px solid var(--line);padding:10px 4px;position:relative}
+ .gt td{border:0;padding:3px 12px 3px 42px}
+ .gt td.ck{position:absolute;left:0;top:12px;padding:0 0 0 12px;width:auto}
+ .gt td.hm{display:none}
+}
+.more{text-align:center;padding:14px;color:var(--muted);font-size:13px}
+/* modal */
+.modal{position:fixed;inset:0;background:rgba(19,20,27,.55);z-index:50;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(2px)}
+.mbox{background:var(--paper);border-radius:22px;width:100%;max-width:640px;max-height:92vh;overflow:auto;box-shadow:0 30px 80px rgba(0,0,0,.35)}
+.mbox.w{max-width:900px}
+.mh{display:flex;justify-content:space-between;align-items:center;padding:18px 22px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--paper);z-index:2}
+.mh h3{font-size:21px}.mx{border:0;background:#fff;width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:19px}
+.mb{padding:20px 22px}.mf{display:flex;justify-content:flex-end;gap:8px;padding:14px 22px;border-top:1px solid var(--line);position:sticky;bottom:0;background:var(--paper);flex-wrap:wrap}
+.fg2{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
+@media(max-width:560px){.fg2{grid-template-columns:1fr}.mbox{max-height:96vh}.modal{padding:6px;align-items:flex-end}}
+.gside{display:grid;grid-template-columns:1fr 200px;gap:20px}
+@media(max-width:640px){.gside{grid-template-columns:1fr}}
+.qrbox{background:#fff;border-radius:16px;padding:12px;text-align:center}
+.qrbox canvas{width:100%;max-width:176px;height:auto;image-rendering:pixelated}
+.toggle{display:flex;align-items:center;gap:10px;padding:8px 0;cursor:pointer}
+.toggle input{width:42px;height:24px;appearance:none;background:#D9D3C9;border-radius:99px;position:relative;cursor:pointer;flex:none;transition:.2s}
+.toggle input:before{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.2s}
+.toggle input:checked{background:var(--mint)}.toggle input:checked:before{left:21px}
+/* fields editor */
+.fr{display:grid;grid-template-columns:1.4fr 1fr 1.2fr auto auto auto;gap:8px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px;margin-bottom:8px}
+.fr .ic{display:flex;gap:4px}
+.fr .tg{font-size:12px;font-weight:700;display:flex;align-items:center;gap:5px;white-space:nowrap;cursor:pointer}
+.fr .tg input{accent-color:var(--coral);width:16px;height:16px}
+@media(max-width:820px){.fr{grid-template-columns:1fr 1fr}.fr .ic{grid-column:1/-1;justify-content:flex-end}}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 12px}
+.chips button{border:1px dashed #C9C1B4;background:#fff;border-radius:999px;padding:4px 10px;font-size:12px;font-weight:700;cursor:pointer}
+.prev{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px;white-space:pre-wrap;font-size:14px}
+.prog{height:8px;background:#ECE7DF;border-radius:9px;overflow:hidden;margin:10px 0}.prog i{display:block;height:100%;background:var(--mint);width:0;transition:width .3s}
+.badgeprev{width:255px;height:165px;border:1px solid var(--line);border-radius:6px;background:#fff;position:relative;overflow:hidden;margin:12px 0}
+.badgeprev .bd{height:30px;color:#fff;font-weight:800;font-size:12px;padding:8px 12px}
+.badgeprev .bn{position:absolute;left:12px;top:70px;font-weight:800;font-size:19px;max-width:140px;line-height:1.1}
+.badgeprev .bf{position:absolute;left:12px;top:118px;font-size:11px;color:#777}
+.badgeprev .bq{position:absolute;right:10px;bottom:10px;width:80px;height:80px;background:repeating-conic-gradient(#000 0 25%,#fff 0 50%) 0 0/16px 16px;opacity:.85;border:4px solid #fff;outline:1px solid #ddd}
+.badgeprev img{position:absolute;left:12px;top:38px;max-height:26px;max-width:90px}
+.logoprev{width:160px;height:80px;border:2px dashed var(--line);border-radius:12px;display:grid;place-items:center;background:#fff;overflow:hidden}
+.logoprev img{max-width:100%;max-height:100%}
+.colrow{display:flex;gap:12px;flex-wrap:wrap}
+.colrow input[type=color]{width:54px;height:40px;border:1px solid var(--line);border-radius:10px;padding:2px;background:#fff;cursor:pointer}
+.bigcode{font:800 38px 'Bricolage Grotesque';letter-spacing:4px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px}
+.kpi b{display:block;font:800 36px 'Bricolage Grotesque'}.kpi span{color:var(--muted);font-size:13px;font-weight:600}
+@media(max-width:760px){.kpis{grid-template-columns:1fr 1fr}}
+.hbars{display:flex;align-items:flex-end;gap:6px;height:160px;padding-top:10px}
+.hbars div{flex:1;background:var(--coral);border-radius:6px 6px 0 0;position:relative;min-height:2px}
+.hbars div span{position:absolute;bottom:-20px;left:0;right:0;text-align:center;font-size:11px;color:var(--muted)}
+.hbars div em{position:absolute;top:-18px;left:0;right:0;text-align:center;font-size:11px;font-style:normal;font-weight:700}
+.feed div{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid #F0EBE3;font-size:14px}
+.map{width:100%;border-collapse:collapse;font-size:14px}.map td{padding:8px 6px;border-bottom:1px solid var(--line)}.map td:first-child{font-weight:700}
+/* toast/busy */
+#toasts{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:90;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
+.toast{background:var(--ink);color:#fff;padding:12px 18px;border-radius:14px;font-weight:600;box-shadow:0 10px 30px rgba(0,0,0,.25);max-width:90vw;animation:tin .25s}
+.toast.err{background:var(--red)}.toast.ok{background:var(--mint)}
+@keyframes tin{from{opacity:0;transform:translateY(10px)}}
+#busy{position:fixed;inset:0;z-index:80;background:rgba(246,243,238,.55);display:grid;place-items:center}
+.spin{width:38px;height:38px;border:4px solid #E3DDD3;border-top-color:var(--coral);border-radius:50%;animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<!-- ============ AUTH ============ -->
+<div id="vAuth" class="auth" hidden>
+  <div class="side">
+    <a class="logo" href="index.html"><i></i><span data-brand>Varco</span></a>
+    <div class="big">
+      <h1>Ogni ospite,<br>al posto <em>giusto</em>.</h1>
+      <p style="opacity:.7;margin-top:14px;max-width:380px">Liste, QR code, inviti e accrediti dal tuo evento, in un unico posto.</p>
+    </div>
+    <p class="small" style="opacity:.5" data-payoff></p>
+  </div>
+  <div class="main"><div class="abox">
+    <h2 style="font-size:30px">Benvenuto</h2>
+    <p class="muted">Accedi con le credenziali ricevute via email.</p>
+    <div class="tabs2"><button data-at="login" class="on">Accedi</button><button data-at="reg">Ho un codice</button></div>
+
+    <form id="fLogin">
+      <div class="f"><label class="l">Email</label><input class="inp" id="lEmail" type="email" autocomplete="username" required></div>
+      <div class="f"><label class="l">Password</label><input class="inp" id="lPwd" type="password" autocomplete="current-password" required></div>
+      <button class="btn c" style="width:100%;padding:13px">Accedi</button>
+      <p style="text-align:center;margin-top:14px"><a href="#" id="toForgot" class="small muted">Password dimenticata?</a></p>
+    </form>
+
+    <form id="fReg" hidden>
+      <p class="small muted" style="margin-bottom:12px">Hai ricevuto un codice di sblocco (es. regalo o acquisto fatto da un'altra persona)? Crea qui il tuo account.</p>
+      <div class="f"><label class="l">Codice di sblocco</label><input class="inp" id="rCode" placeholder="VRC-XXXX-XXXX" required style="text-transform:uppercase"></div>
+      <div class="f"><label class="l">Nome e cognome</label><input class="inp" id="rNome" required></div>
+      <div class="f"><label class="l">Email</label><input class="inp" id="rEmail" type="email" required></div>
+      <div class="f"><label class="l">Password (min. 8 caratteri)</label><input class="inp" id="rPwd" type="password" minlength="8" autocomplete="new-password" required></div>
+      <button class="btn c" style="width:100%;padding:13px">Crea account e sblocca</button>
+    </form>
+
+    <form id="fForgot" hidden>
+      <div id="fg1">
+        <p class="small muted" style="margin-bottom:12px">Ti mandiamo un codice di 6 cifre per impostare una nuova password.</p>
+        <div class="f"><label class="l">Email</label><input class="inp" id="fEmail" type="email"></div>
+        <button type="button" class="btn c" id="fSend" style="width:100%;padding:13px">Invia codice</button>
+      </div>
+      <div id="fg2" hidden>
+        <div class="f"><label class="l">Codice ricevuto</label><input class="inp" id="fCode" inputmode="numeric" maxlength="6"></div>
+        <div class="f"><label class="l">Nuova password</label><input class="inp" id="fPwd" type="password" minlength="8" autocomplete="new-password"></div>
+        <button type="button" class="btn c" id="fReset" style="width:100%;padding:13px">Imposta password</button>
+      </div>
+      <p style="text-align:center;margin-top:14px"><a href="#" id="toLogin" class="small muted">← Torna all'accesso</a></p>
+    </form>
+    <p class="small muted" style="text-align:center;margin-top:28px">Non hai ancora un pacchetto? <a href="index.html#prezzi"><b>Scopri i prezzi</b></a></p>
+  </div></div>
+</div>
+
+<!-- ============ APP ============ -->
+<div id="vApp" hidden>
+  <div class="top"><div class="in">
+    <a class="logo" href="#" onclick="goHome();return false"><i></i><span data-brand>Varco</span></a>
+    <div class="umenu">
+      <button id="uBtn">👤</button>
+      <div class="dd" id="uDD" hidden>
+        <button onclick="goHome()">🏠 I miei eventi</button>
+        <button onclick="mPwd()">🔑 Cambia password</button>
+        <a id="helpLink" target="_blank">💬 Assistenza</a>
+        <button onclick="logout()">↩ Esci</button>
+      </div>
+    </div>
+  </div></div>
+  <main id="main"></main>
+</div>
+
+<div id="modal" class="modal" hidden><div class="mbox" id="mbox"></div></div>
+<div id="toasts"></div>
+<div id="busy" hidden><div class="spin"></div></div>
+<input type="file" id="fileX" accept=".xlsx,.xls,.csv" hidden>
+<input type="file" id="fileL" accept="image/png,image/jpeg,image/webp,image/svg+xml" hidden>
+
+<script>
+/* ================= STATO & UTILITY ================= */
+const C = window.VARCO;
+const S = { token: localStorage.getItem('vrc_t') || '', user: null, lic: [], events: [], ev: null, guests: [], sel: new Set(), tab: 'ospiti', q: '', filter: 'all', quota: null, liveT: null };
+const $ = id => document.getElementById(id);
+document.querySelectorAll('[data-brand]').forEach(e => e.textContent = C.BRAND);
+document.querySelectorAll('[data-payoff]').forEach(e => e.textContent = C.BRAND + ' · ' + C.PAYOFF);
+document.title = 'Dashboard · ' + C.BRAND;
+$('helpLink').href = 'https://wa.me/' + C.CONTACTS.whatsapp + '?text=' + encodeURIComponent('Ciao, ho bisogno di aiuto con ' + C.BRAND);
+
+function toast(m, t) { const d = document.createElement('div'); d.className = 'toast ' + (t || ''); d.textContent = m; $('toasts').appendChild(d); setTimeout(() => d.remove(), 3800); }
+function busy(on) { $('busy').hidden = !on; }
+async function call(a, d, quiet) {
+  if (!quiet) busy(true);
+  try { return await api(a, Object.assign({ token: S.token }, d || {})); }
+  catch (e) {
+    if (e.message === 'AUTH') { logout(); toast('Sessione scaduta: accedi di nuovo', 'err'); }
+    throw e;
+  } finally { if (!quiet) busy(false); }
+}
+async function run(fn) { try { return await fn(); } catch (e) { if (e.message !== 'AUTH') toast(e.message, 'err'); } }
+function openModal(html, wide) { $('mbox').className = 'mbox' + (wide ? ' w' : ''); $('mbox').innerHTML = html; $('modal').hidden = false; }
+function closeModal() { $('modal').hidden = true; $('mbox').innerHTML = ''; }
+$('modal').addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); });
+function mHead(t) { return `<div class="mh"><h3>${esc(t)}</h3><button class="mx" onclick="closeModal()">×</button></div>`; }
+function loadLib(src, test) { return new Promise((res, rej) => { if (test()) return res(); const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = () => rej(new Error('Impossibile caricare una libreria: controlla la connessione')); document.head.appendChild(s); }); }
+const libXLSX = () => loadLib('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js', () => window.XLSX);
+const libPDF = () => loadLib('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js', () => window.jspdf);
+function slug(s) { return String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '').slice(0, 30) || 'campo'; }
+function norm(s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
+function fullName(g) { return ((g.nome || '') + ' ' + (g.cognome || '')).trim(); }
+function qrText(g) { return 'VRC|' + S.ev.id + '|' + g.token; }
+function passLink(g) { return vurl('invito.html') + '?e=' + S.ev.id + '&t=' + g.token; }
+function appLink() { return vurl('checkin.html') + '?c=' + S.ev.codiceApp; }
+function qrCanvas(text, scale, margin) {
+  scale = scale || 6; margin = margin == null ? 2 : margin;
+  const q = qrcode(0, 'M'); q.addData(text); q.make();
+  const n = q.getModuleCount(), s = (n + margin * 2) * scale, c = document.createElement('canvas');
+  c.width = c.height = s; const x = c.getContext('2d');
+  x.fillStyle = '#fff'; x.fillRect(0, 0, s, s); x.fillStyle = '#000';
+  for (let r = 0; r < n; r++) for (let k = 0; k < n; k++) if (q.isDark(r, k)) x.fillRect((k + margin) * scale, (r + margin) * scale, scale, scale);
+  return c;
+}
+function copy(t) { navigator.clipboard.writeText(t).then(() => toast('Copiato ✓', 'ok'), () => prompt('Copia:', t)); }
+function waNum(p) { let d = String(p || '').replace(/\D/g, ''); if (d.startsWith('00')) d = d.slice(2); if (d.length === 10 && d[0] === '3') d = '39' + d; return d; }
+
+/* ================= AUTH ================= */
+document.querySelectorAll('[data-at]').forEach(b => b.onclick = () => {
+  document.querySelectorAll('[data-at]').forEach(x => x.classList.toggle('on', x === b));
+  $('fLogin').hidden = b.dataset.at !== 'login'; $('fReg').hidden = b.dataset.at !== 'reg'; $('fForgot').hidden = true;
+});
+$('toForgot').onclick = e => { e.preventDefault(); $('fLogin').hidden = true; $('fForgot').hidden = false; $('fg1').hidden = false; $('fg2').hidden = true; $('fEmail').value = $('lEmail').value; };
+$('toLogin').onclick = e => { e.preventDefault(); $('fForgot').hidden = true; $('fLogin').hidden = false; };
+$('fLogin').onsubmit = e => { e.preventDefault(); run(async () => { const r = await call('login', { email: $('lEmail').value, password: $('lPwd').value }); afterLogin(r); }); };
+$('fReg').onsubmit = e => { e.preventDefault(); run(async () => { const r = await call('register', { code: $('rCode').value, nome: $('rNome').value, email: $('rEmail').value, password: $('rPwd').value }); afterLogin(r); toast('Account creato e pacchetto attivato 🎉', 'ok'); }); };
+$('fSend').onclick = () => run(async () => { await call('requestReset', { email: $('fEmail').value }); $('fg1').hidden = true; $('fg2').hidden = false; toast('Se l\'email è registrata riceverai un codice', 'ok'); });
+$('fReset').onclick = () => run(async () => { const r = await call('doReset', { email: $('fEmail').value, code: $('fCode').value, password: $('fPwd').value }); afterLogin(r); toast('Password aggiornata', 'ok'); });
+
+function afterLogin(r) { S.token = r.token; localStorage.setItem('vrc_t', r.token); boot(); }
+function logout() { S.token = ''; localStorage.removeItem('vrc_t'); clearInterval(S.liveT); $('vApp').hidden = true; $('vAuth').hidden = false; closeModal(); }
+$('uBtn').onclick = e => { e.stopPropagation(); $('uDD').hidden = !$('uDD').hidden; };
+document.addEventListener('click', () => $('uDD').hidden = true);
+
+function mPwd() {
+  openModal(mHead('Cambia password') + `<div class="mb"><div class="f"><label class="l">Password attuale</label><input class="inp" id="pOld" type="password"></div><div class="f"><label class="l">Nuova password (min. 8)</label><input class="inp" id="pNew" type="password" autocomplete="new-password"></div></div><div class="mf"><button class="btn g" onclick="closeModal()">Annulla</button><button class="btn c" id="pSave">Salva</button></div>`);
+  $('pSave').onclick = () => run(async () => { await call('changePassword', { old: $('pOld').value, password: $('pNew').value }); closeModal(); toast('Password aggiornata', 'ok'); });
+}
+
+async function boot() {
+  if (!C.API_URL) { $('vAuth').hidden = false; toast('Configura API_URL in config.js', 'err'); return; }
+  if (!S.token) { $('vAuth').hidden = false; return; }
+  await run(async () => {
+    const r = await call('me');
+    S.user = r.user; S.lic = r.licenses;
+    $('uBtn').textContent = '👤 ' + (r.user.nome || r.user.email);
+    $('vAuth').hidden = true; $('vApp').hidden = false;
+    const ev = new URLSearchParams(location.hash.slice(1)).get('ev');
+    if (ev) openEvent(ev); else goHome();
+  });
+}
+
+/* ================= HOME ================= */
+async function goHome() {
+  clearInterval(S.liveT); S.ev = null; history.replaceState(null, '', location.pathname);
+  await run(async () => {
+    const [me, ev] = await Promise.all([call('me', null, true), call('listEvents')]);
+    S.lic = me.licenses; S.events = ev.events; renderHome();
+  });
+}
+function renderHome() {
+  const act = S.lic.filter(l => l.attiva), free = act.reduce((a, l) => a + Math.max(0, l.eventi - l.eventiUsati), 0);
+  $('main').innerHTML = `
+  <div class="hello rowb" style="margin-bottom:20px"><div><h1>Ciao ${esc((S.user.nome || '').split(' ')[0] || '')} 👋</h1><p class="muted">${free ? `Hai <b>${free >= 900 ? 'eventi illimitati' : free + ' evento' + (free > 1 ? 'i' : '') + ' disponibil' + (free > 1 ? 'i' : 'e')}</b> da creare.` : 'Attiva un codice di sblocco per creare il tuo primo evento.'}</p></div>
+  <button class="btn c" onclick="mNewEvent()" ${free ? '' : 'disabled'}>＋ Nuovo evento</button></div>
+  <div class="grid g2">
+    <div class="card"><h3 style="font-size:19px;margin-bottom:8px">I tuoi pacchetti</h3>
+      ${S.lic.length ? S.lic.map(l => `<div class="lic"><div><b>${esc(l.nome)}</b> <span class="pill ${l.attiva ? 'ok' : 'no'}">${l.attiva ? 'Attivo' : 'Scaduto'}</span><div class="small muted">${l.eventi >= 900 ? 'Eventi illimitati' : l.eventiUsati + '/' + l.eventi + ' eventi usati'} · ${l.ospiti} ospiti/evento · ${l.dispositivi} dispositivi${l.whiteLabel ? ' · White label' : ''}</div></div><div class="small muted" style="text-align:right">Scade il<br><b>${new Date(l.scadenza).toLocaleDateString('it-IT')}</b></div></div>`).join('') : '<p class="muted small">Nessun pacchetto attivo.</p>'}
+    </div>
+    <div class="card"><h3 style="font-size:19px;margin-bottom:6px">Attiva un codice di sblocco</h3>
+      <p class="small muted" style="margin-bottom:12px">Lo trovi nell'email di conferma acquisto.</p>
+      <div style="display:flex;gap:8px"><input class="inp" id="actCode" placeholder="VRC-XXXX-XXXX" style="text-transform:uppercase"><button class="btn i" id="actBtn">Attiva</button></div>
+      <p class="small muted" style="margin-top:12px">Ti serve un altro pacchetto? <a href="index.html#prezzi" target="_blank"><b>Acquista</b></a></p>
+    </div>
+  </div>
+  <h2 style="font-size:24px;margin:30px 0 0">I tuoi eventi</h2>
+  ${S.events.length ? `<div class="evs">${S.events.map(e => `<div class="ev" onclick="openEvent('${e.id}')"><h3>${esc(e.nome)}</h3><div class="small muted">📅 ${esc(fmtData(e.data) || 'Data da definire')}</div><div class="small muted">📍 ${esc(e.luogo || '—')}</div><div style="margin-top:12px;display:flex;gap:6px;flex-wrap:wrap"><span class="pill">Codice app ${esc(e.codiceApp)}</span><span class="pill">${esc(e.limiti.piano)}</span></div></div>`).join('')}</div>`
+    : `<div class="empty" style="margin-top:16px"><div style="font-size:40px">🎟️</div><p style="margin:8px 0 14px">Nessun evento ancora.</p>${free ? '<button class="btn c" onclick="mNewEvent()">Crea il primo evento</button>' : ''}</div>`}`;
+  $('actBtn').onclick = () => run(async () => { await call('activate', { code: $('actCode').value }); toast('Pacchetto attivato 🎉', 'ok'); goHome(); });
+}
+function mNewEvent() {
+  openModal(mHead('Nuovo evento') + `<div class="mb"><div class="f"><label class="l">Nome evento *</label><input class="inp" id="neN" placeholder="Es. Gala di Natale 2026"></div><div class="fg2"><div class="f"><label class="l">Data e ora</label><input class="inp" id="neD" type="datetime-local"></div><div class="f"><label class="l">Luogo</label><input class="inp" id="neL" placeholder="Es. Villa Rosa, Bari"></div></div><p class="small muted">Userai un evento del tuo pacchetto. Nome, data e luogo si possono modificare dopo.</p></div><div class="mf"><button class="btn g" onclick="closeModal()">Annulla</button><button class="btn c" id="neS">Crea evento</button></div>`);
+  $('neN').focus();
+  $('neS').onclick = () => run(async () => { const r = await call('createEvent', { nome: $('neN').value, data: $('neD').value, luogo: $('neL').value }); closeModal(); toast('Evento creato', 'ok'); openEvent(r.id); });
+}
+
+/* ================= EVENTO ================= */
+async function openEvent(id) {
+  await run(async () => {
+    const [e, g] = await Promise.all([call('getEvent', { id }), call('guests', { eventId: id }, true)]);
+    S.ev = e.event; S.guests = g.guests; S.quota = g.quota; S.sel.clear(); S.q = ''; S.filter = 'all';
+    S.ev.config = Object.assign({ fields: [], brand: {}, invite: {}, badge: {}, app: {} }, S.ev.config);
+    history.replaceState(null, '', '#ev=' + id);
+    renderEvent();
+  });
+}
+async function reloadGuests() { const g = await call('guests', { eventId: S.ev.id }, true); S.guests = g.guests; S.quota = g.quota; }
+async function saveCfg(extra) {
+  const r = await call('updateEvent', Object.assign({ id: S.ev.id, config: S.ev.config }, extra || {}));
+  Object.assign(S.ev, r.event); S.ev.config = Object.assign({ fields: [], brand: {}, invite: {}, badge: {}, app: {} }, r.event.config);
+}
+function renderEvent() {
+  const e = S.ev;
+  $('main').innerHTML = `
+  <button class="back" onclick="goHome()">← I miei eventi</button>
+  <div class="evh"><div><h1 id="evTitle">${esc(e.nome)}</h1><div class="muted">📅 ${esc(fmtData(e.data) || 'Data da definire')} · 📍 ${esc(e.luogo || '—')}</div></div>
+    <div class="codebox"><div><span>CODICE APP</span><b>${esc(e.codiceApp)}</b></div><div><span>PIN</span><b>${esc(e.pin)}</b></div><a class="btn sm c" href="${appLink()}" target="_blank">Apri app ↗</a></div></div>
+  <div class="tabs">${[['ospiti', '👥 Ospiti'], ['campi', '🧩 Campi'], ['inviti', '✉️ Inviti & Badge'], ['app', '🎨 App & Brand'], ['live', '📈 Live']].map(t => `<button data-t="${t[0]}" class="${S.tab === t[0] ? 'on' : ''}">${t[1]}</button>`).join('')}</div>
+  <div id="tab"></div>`;
+  document.querySelectorAll('[data-t]').forEach(b => b.onclick = () => { S.tab = b.dataset.t; document.querySelectorAll('[data-t]').forEach(x => x.classList.toggle('on', x === b)); renderTab(); });
+  renderTab();
+}
+function renderTab() {
+  clearInterval(S.liveT);
+  ({ ospiti: tOspiti, campi: tCampi, inviti: tInviti, app: tApp, live: tLive })[S.tab]();
+}
+
+/* ---------- TAB OSPITI ---------- */
+function shownFields() { return S.ev.config.fields.filter(f => f.k !== 'note').slice(0, 3); }
+function tOspiti() {
+  const fs = shownFields();
+  $('tab').innerHTML = `
+  <div class="tool">
+    <input class="inp" id="gq" placeholder="🔎 Cerca nome, email, telefono, campo…" value="${esc(S.q)}">
+    <select class="inp" id="gf" style="flex:0 0 auto;width:auto">
+      <option value="all">Tutti</option><option value="in">Entrati</option><option value="out">Da entrare</option><option value="noinv">Non invitati</option><option value="nomail">Senza email</option>
+    </select>
+    <button class="btn c" onclick="mGuest()">＋ Ospite</button>
+    <button class="btn i" onclick="$('fileX').click()">⬆ Importa Excel</button>
+    <button class="btn g" onclick="exportXlsx()">⬇ Esporta</button>
+    <button class="btn g" onclick="templateXlsx()">📄 Modello</button>
+  </div>
+  <div class="stats" id="gstats"></div>
+  <div id="gbulk"></div>
+  <table class="gt"><thead><tr><th class="ck"><input type="checkbox" id="gall"></th><th>Ospite</th><th class="hm">Contatti</th>${fs.map(f => `<th class="hm">${esc(f.l)}</th>`).join('')}<th>Invito</th><th>Stato</th></tr></thead><tbody id="gbody"></tbody></table>
+  <div class="more" id="gmore"></div>`;
+  $('gf').value = S.filter;
+  $('gq').oninput = e => { S.q = e.target.value; rows(); };
+  $('gf').onchange = e => { S.filter = e.target.value; rows(); };
+  $('gall').onchange = e => { filtered().forEach(g => e.target.checked ? S.sel.add(g.id) : S.sel.delete(g.id)); rows(); };
+  rows();
+}
+function filtered() {
+  const q = norm(S.q);
+  return S.guests.filter(g => {
+    if (S.filter === 'in' && !g.checkin) return false;
+    if (S.filter === 'out' && g.checkin) return false;
+    if (S.filter === 'noinv' && g.invito) return false;
+    if (S.filter === 'nomail' && g.email) return false;
+    if (!q) return true;
+    return norm([g.nome, g.cognome, g.cognome, g.nome, g.email, g.telefono].concat(Object.values(g.dati || {})).join(' ')).includes(q);
+  }).sort((a, b) => (a.cognome + a.nome).localeCompare(b.cognome + b.nome, 'it'));
+}
+function rows() {
+  const fs = shownFields(), list = filtered(), tot = S.guests.length, inn = S.guests.filter(g => g.checkin).length;
+  const alerts = S.ev.config.fields.filter(f => f.alert).map(f => f.k);
+  $('gstats').innerHTML = `<div class="stat"><b>${tot}</b>ospiti / ${S.ev.limiti.ospiti}</div><div class="stat"><b>${inn}</b>entrati</div><div class="stat"><b>${S.guests.filter(g => g.email).length}</b>con email</div><div class="stat"><b>${S.guests.filter(g => g.invito).length}</b>invitati</div>`;
+  $('gbulk').innerHTML = S.sel.size ? `<div class="bulk"><b>${S.sel.size} selezionati</b><button class="btn sm" onclick="bulkInvite()">✉️ Invia invito</button><button class="btn sm" onclick="badgePdf(selGuests(),'badge-selezionati.pdf')">🏷️ Badge PDF</button><button class="btn sm" onclick="bulkDelete()">🗑 Elimina</button><button class="btn sm" onclick="S.sel.clear();rows()">✕ Deseleziona</button></div>` : '';
+  const show = list.slice(0, 300);
+  $('gbody').innerHTML = show.map(g => `<tr data-id="${g.id}">
+    <td class="ck"><input type="checkbox" data-ck="${g.id}" ${S.sel.has(g.id) ? 'checked' : ''}></td>
+    <td><div class="nm">${esc(fullName(g)) || '—'}</div>${alerts.filter(k => g.dati[k]).map(k => `<div class="small alertc">⚠ ${esc(g.dati[k] === 'Sì' ? (S.ev.config.fields.find(f => f.k === k) || {}).l : g.dati[k])}</div>`).join('')}</td>
+    <td class="hm small">${esc(g.email)}${g.email && g.telefono ? '<br>' : ''}${esc(g.telefono)}</td>
+    ${fs.map(f => `<td class="hm small">${esc(g.dati[f.k] || '')}</td>`).join('')}
+    <td>${g.invito ? '<span class="pill ok">✓ Inviato</span>' : '<span class="pill">—</span>'}</td>
+    <td>${g.checkin ? `<span class="pill ok">Entrato ${fmtOra(g.checkinAt)}</span>` : '<span class="pill w">Da entrare</span>'}</td></tr>`).join('') || `<tr><td colspan="9" style="text-align:center;padding:40px" class="muted">${S.guests.length ? 'Nessun risultato' : 'Nessun ospite: importa un Excel o aggiungine uno.'}</td></tr>`;
+  $('gmore').textContent = list.length > 300 ? `Mostrati 300 di ${list.length}: affina la ricerca` : '';
+  $('gbody').querySelectorAll('tr[data-id]').forEach(tr => tr.onclick = e => {
+    if (e.target.dataset.ck) { e.target.checked ? S.sel.add(e.target.dataset.ck) : S.sel.delete(e.target.dataset.ck); rows(); return; }
+    if (e.target.closest('.ck')) return;
+    mGuest(S.guests.find(g => g.id === tr.dataset.id));
+  });
+}
+function selGuests() { return S.guests.filter(g => S.sel.has(g.id)); }
+function bulkDelete() {
+  if (!confirm('Eliminare ' + S.sel.size + ' ospiti? L\'operazione non si può annullare.')) return;
+  run(async () => { await call('deleteGuests', { eventId: S.ev.id, ids: [...S.sel] }); S.guests = S.guests.filter(g => !S.sel.has(g.id)); S.sel.clear(); rows(); toast('Eliminati', 'ok'); });
+}
+function bulkInvite() { const l = selGuests().filter(g => g.email); if (!l.length) return toast('Nessun ospite selezionato ha un\'email', 'err'); sendInvites(l); }
+
+function fieldInput(f, v) {
+  const id = 'fd_' + f.k; v = v || '';
+  if (f.t === 'check') return `<label class="toggle"><input type="checkbox" id="${id}" ${v ? 'checked' : ''}> ${esc(f.l)}</label>`;
+  if (f.t === 'select') return `<label class="l">${esc(f.l)}</label><select class="inp" id="${id}"><option value=""></option>${String(f.o || '').split(',').map(o => o.trim()).filter(Boolean).map(o => `<option ${o === v ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select>`;
+  return `<label class="l">${esc(f.l)}</label><input class="inp" id="${id}" type="${f.t === 'number' ? 'number' : 'text'}" value="${esc(v)}">`;
+}
+function readFields() { const d = {}; S.ev.config.fields.forEach(f => { const el = $('fd_' + f.k); if (!el) return; const v = f.t === 'check' ? (el.checked ? 'Sì' : '') : el.value.trim(); if (v) d[f.k] = v; }); return d; }
+
+function mGuest(g) {
+  const isNew = !g; g = g || { nome: '', cognome: '', email: '', telefono: '', dati: {} };
+  openModal(mHead(isNew ? 'Nuovo ospite' : fullName(g)) + `<div class="mb"><div class="${isNew ? '' : 'gside'}"><div>
+    <div class="fg2">
+      <div class="f"><label class="l">Nome</label><input class="inp" id="gN" value="${esc(g.nome)}"></div>
+      <div class="f"><label class="l">Cognome</label><input class="inp" id="gC" value="${esc(g.cognome)}"></div>
+      <div class="f"><label class="l">Email</label><input class="inp" id="gE" type="email" value="${esc(g.email)}"></div>
+      <div class="f"><label class="l">Telefono</label><input class="inp" id="gT" type="tel" value="${esc(g.telefono)}"></div>
+      ${S.ev.config.fields.map(f => `<div class="f">${fieldInput(f, g.dati[f.k])}</div>`).join('')}
+    </div>
+    ${isNew ? '' : `<label class="toggle"><input type="checkbox" id="gIn" ${g.checkin ? 'checked' : ''}> <b>Entrato</b> ${g.checkin ? `<span class="small muted">alle ${fmtOra(g.checkinAt)} · ${esc(g.checkinBy)}</span>` : ''}</label>`}
+    </div>
+    ${isNew ? '' : `<div><div class="qrbox" id="gQr"></div>
+      <div class="grid" style="gap:6px;margin-top:10px">
+        <button class="btn sm" id="gBadge">🏷️ Badge PDF</button>
+        <button class="btn sm" id="gLink">🔗 Copia link pass</button>
+        <a class="btn sm" id="gWa" target="_blank">💬 WhatsApp</a>
+        <button class="btn sm" id="gMail">✉️ Invia email</button>
+      </div><p class="small muted" style="margin-top:8px;text-align:center">${g.invito ? 'Invito: ' + esc(g.invito) : 'Invito non ancora inviato'}</p></div>`}
+  </div></div>
+  <div class="mf">${isNew ? '' : '<button class="btn r" id="gDel" style="margin-right:auto">Elimina</button>'}<button class="btn g" onclick="closeModal()">Annulla</button><button class="btn c" id="gSave">Salva</button></div>`, !isNew);
+  if (!isNew) {
+    $('gQr').appendChild(qrCanvas(qrText(g), 6));
+    $('gBadge').onclick = () => badgePdf([g], 'badge-' + slug(fullName(g)) + '.pdf');
+    $('gLink').onclick = () => copy(passLink(g));
+    const msg = `Ciao ${g.nome}! Ecco il tuo pass per ${S.ev.nome}${S.ev.data ? ' (' + fmtData(S.ev.data) + ')' : ''}: mostra il QR all'ingresso 👉 ${passLink(g)}`;
+    $('gWa').href = 'https://wa.me/' + waNum(g.telefono) + '?text=' + encodeURIComponent(msg);
+    $('gWa').onclick = () => { call('markInvited', { eventId: S.ev.id, id: g.id }, true).then(() => { g.invito = 'WhatsApp'; }).catch(() => {}); };
+    $('gMail').onclick = () => { if (!g.email) return toast('Ospite senza email', 'err'); closeModal(); sendInvites([g]); };
+    $('gDel').onclick = () => { if (!confirm('Eliminare ' + fullName(g) + '?')) return; run(async () => { await call('deleteGuests', { eventId: S.ev.id, ids: [g.id] }); S.guests = S.guests.filter(x => x.id !== g.id); closeModal(); rows(); }); };
+  }
+  $('gSave').onclick = () => run(async () => {
+    const x = { id: g.id, nome: $('gN').value, cognome: $('gC').value, email: $('gE').value, telefono: $('gT').value, dati: readFields() };
+    if (!isNew) x.checkin = $('gIn').checked;
+    const r = await call('saveGuest', { eventId: S.ev.id, guest: x });
+    const i = S.guests.findIndex(z => z.id === r.guest.id);
+    if (i >= 0) S.guests[i] = r.guest; else S.guests.push(r.guest);
+    closeModal(); if (S.tab === 'ospiti') rows(); toast('Salvato', 'ok');
+  });
+}
+
+/* ---------- IMPORT EXCEL ---------- */
+$('fileX').onchange = e => { const f = e.target.files[0]; e.target.value = ''; if (f) run(() => importFile(f)); };
+const MAPRULES = [
+  ['nome', /^(nome|name|first ?name|firstname|given ?name)$/],
+  ['cognome', /^(cognome|surname|last ?name|lastname|family ?name)$/],
+  ['full', /^(nominativo|nome e cognome|nome cognome|nome completo|ospite|invitato|full ?name|partecipante)$/],
+  ['fullrev', /^(cognome e nome|cognome nome)$/],
+  ['email', /^(e-?mail|mail|indirizzo email|posta elettronica)$/],
+  ['telefono', /^(telefono|tel|cellulare|cell|phone|mobile|whatsapp|numero)$/]
+];
+async function importFile(file) {
+  busy(true);
+  try {
+    await libXLSX();
+    const wb = XLSX.read(await file.arrayBuffer(), { type: 'array' });
+    const aoa = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, defval: '', raw: false });
+    let hi = aoa.findIndex(r => r.filter(c => String(c).trim()).length >= 1);
+    if (hi < 0) throw new Error('Il file è vuoto');
+    const head = aoa[hi].map(h => String(h).trim()), data = aoa.slice(hi + 1).filter(r => r.some(c => String(c).trim()));
+    const auto = head.map(h => {
+      const n = norm(h).replace(/[_.]/g, ' ').trim();
+      if (!n) return 'skip';
+      for (const [k, re] of MAPRULES) if (re.test(n)) return k;
+      const f = S.ev.config.fields.find(f => norm(f.l) === n || f.k === slug(h));
+      return f ? 'f:' + f.k : 'new';
+    });
+    busy(false);
+    mImport(head, data, auto);
+  } finally { busy(false); }
+}
+function mImport(head, data, auto) {
+  const opts = c => `<option value="skip">— Ignora —</option><option value="nome">Nome</option><option value="cognome">Cognome</option><option value="full">Nome Cognome (insieme)</option><option value="fullrev">Cognome Nome (insieme)</option><option value="email">Email</option><option value="telefono">Telefono</option>${S.ev.config.fields.map(f => `<option value="f:${f.k}">Campo: ${esc(f.l)}</option>`).join('')}<option value="new">＋ Nuovo campo "${esc(c)}"</option>`;
+  openModal(mHead('Importa ' + data.length + ' righe') + `<div class="mb">
+    <p class="small muted" style="margin-bottom:12px">Controlla a cosa corrisponde ogni colonna del tuo file.</p>
+    <table class="map">${head.map((h, i) => `<tr><td>${esc(h || '(senza titolo)')}<div class="small muted" style="font-weight:400">${esc(data.slice(0, 2).map(r => r[i]).filter(Boolean).join(' · ').slice(0, 60))}</div></td><td style="width:55%"><select class="inp" data-col="${i}">${opts(h)}</select></td></tr>`).join('')}</table>
+    <div style="margin-top:16px">
+      <label class="toggle"><input type="checkbox" id="imDup" checked> Salta i doppioni (stessa email o stesso nome)</label>
+      <label class="toggle"><input type="checkbox" id="imRep"> <span>Sostituisci la lista attuale <span class="small muted">(${S.guests.length} ospiti verranno rimossi)</span></span></label>
+    </div></div>
+    <div class="mf"><button class="btn g" onclick="closeModal()">Annulla</button><button class="btn c" id="imGo">Importa</button></div>`, true);
+  document.querySelectorAll('[data-col]').forEach(s => s.value = auto[s.dataset.col]);
+  $('imGo').onclick = () => run(async () => {
+    const map = [...document.querySelectorAll('[data-col]')].map(s => s.value);
+    if (!map.some(m => ['nome', 'cognome', 'full', 'fullrev'].includes(m))) throw new Error('Abbina almeno una colonna a Nome, Cognome o Nome Cognome');
+    let changed = false;
+    map.forEach((m, i) => {
+      if (m !== 'new') return;
+      let k = slug(head[i] || 'campo'), n = 2; while (S.ev.config.fields.some(f => f.k === k) || ['nome', 'cognome', 'email', 'telefono'].includes(k)) k = slug(head[i]) + '_' + n++;
+      S.ev.config.fields.push({ k, l: head[i] || k, t: 'text', app: true }); map[i] = 'f:' + k; changed = true;
+    });
+    const rowsOut = data.map(r => {
+      const o = { nome: '', cognome: '', email: '', telefono: '', dati: {} };
+      map.forEach((m, i) => {
+        const v = String(r[i] == null ? '' : r[i]).trim(); if (!v || m === 'skip') return;
+        if (m === 'full' || m === 'fullrev') { const p = v.split(/\s+/); if (m === 'full') { o.nome = p.shift(); o.cognome = p.join(' '); } else { o.cognome = p.shift(); o.nome = p.join(' '); } }
+        else if (m.startsWith('f:')) o.dati[m.slice(2)] = v;
+        else o[m] = v;
+      });
+      return o;
+    });
+    const dup = $('imDup').checked, rep = $('imRep').checked;
+    if (rep && !confirm('Sostituire tutta la lista attuale?')) return;
+    if (changed) await saveCfg();
+    let added = 0, skipped = 0;
+    for (let i = 0; i < rowsOut.length; i += 400) {
+      const r = await call('importGuests', { eventId: S.ev.id, rows: rowsOut.slice(i, i + 400), mode: rep && i === 0 ? 'replace' : 'append', skipDup: dup });
+      added += r.added; skipped += r.skipped;
+    }
+    await reloadGuests(); closeModal(); renderTab();
+    toast(`Importati ${added} ospiti${skipped ? ', ' + skipped + ' saltati' : ''}`, 'ok');
+  });
+}
+function rowsForExport(list) {
+  return list.map(g => {
+    const o = { Nome: g.nome, Cognome: g.cognome, Email: g.email, Telefono: g.telefono };
+    S.ev.config.fields.forEach(f => o[f.l] = g.dati[f.k] || '');
+    o['Entrato'] = g.checkin ? 'Sì' : 'No'; o['Orario ingresso'] = g.checkin ? new Date(g.checkinAt).toLocaleString('it-IT') : ''; o['Postazione'] = g.checkinBy;
+    o['Invito'] = g.invito; o['Link pass'] = passLink(g);
+    return o;
+  });
+}
+function exportXlsx() { run(async () => { await libXLSX(); const ws = XLSX.utils.json_to_sheet(rowsForExport(filtered())); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Ospiti'); XLSX.writeFile(wb, slug(S.ev.nome) + '-ospiti.xlsx'); }); }
+function templateXlsx() { run(async () => { await libXLSX(); const h = ['Nome', 'Cognome', 'Email', 'Telefono'].concat(S.ev.config.fields.map(f => f.l)); const ex = ['Mario', 'Rossi', 'mario.rossi@email.it', '3331234567'].concat(S.ev.config.fields.map(f => ({ azienda: 'Acme S.r.l.', tavolo: '5', intolleranze: 'Lattosio', accompagnatori: '1', vip: 'Sì' }[f.k] || ''))); const ws = XLSX.utils.aoa_to_sheet([h, ex]); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Ospiti'); XLSX.writeFile(wb, 'modello-lista-ospiti.xlsx'); }); }
+
+/* ---------- TAB CAMPI ---------- */
+function tCampi() {
+  const fs = S.ev.config.fields;
+  $('tab').innerHTML = `<div class="card" style="max-width:980px">
+    <div class="rowb" style="margin-bottom:6px"><h3 style="font-size:20px">Campi personalizzati</h3><button class="btn c" id="fAdd">＋ Aggiungi campo</button></div>
+    <p class="small muted" style="margin-bottom:16px">Nome, cognome, email e telefono ci sono sempre. <b>App</b> = visibile allo staff all'ingresso. <b>Evidenzia</b> = mostrato in rosso (allergie, VIP, pagamento da saldare…).</p>
+    <div id="fList">${fs.map((f, i) => `<div class="fr" data-i="${i}">
+      <input class="inp" data-p="l" value="${esc(f.l)}" placeholder="Nome campo">
+      <select class="inp" data-p="t"><option value="text">Testo</option><option value="number">Numero</option><option value="check">Sì / No</option><option value="select">Scelta da elenco</option></select>
+      <input class="inp" data-p="o" value="${esc(f.o || '')}" placeholder="Opzioni separate da virgola" ${f.t === 'select' ? '' : 'hidden'}><span ${f.t === 'select' ? 'hidden' : ''}></span>
+      <label class="tg"><input type="checkbox" data-p="app" ${f.app ? 'checked' : ''}> App</label>
+      <label class="tg"><input type="checkbox" data-p="alert" ${f.alert ? 'checked' : ''}> Evidenzia</label>
+      <div class="ic"><button class="btn sm g" data-a="up">↑</button><button class="btn sm g" data-a="dn">↓</button><button class="btn sm r" data-a="del">🗑</button></div>
+    </div>`).join('') || '<p class="muted">Nessun campo personalizzato.</p>'}</div>
+    <div style="text-align:right;margin-top:14px"><button class="btn i" id="fSave">Salva campi</button></div></div>`;
+  document.querySelectorAll('.fr').forEach(r => { const f = fs[r.dataset.i]; r.querySelector('[data-p=t]').value = f.t || 'text'; });
+  const collect = () => document.querySelectorAll('.fr').forEach(r => {
+    const f = fs[r.dataset.i];
+    f.l = r.querySelector('[data-p=l]').value.trim() || f.l; f.t = r.querySelector('[data-p=t]').value; f.o = r.querySelector('[data-p=o]').value;
+    f.app = r.querySelector('[data-p=app]').checked; f.alert = r.querySelector('[data-p=alert]').checked;
+  });
+  $('fList').onchange = e => { if (e.target.dataset.p === 't') { collect(); tCampi(); } };
+  $('fList').onclick = e => {
+    const a = e.target.dataset.a; if (!a) return; collect();
+    const i = +e.target.closest('.fr').dataset.i;
+    if (a === 'up' && i > 0) [fs[i - 1], fs[i]] = [fs[i], fs[i - 1]];
+    if (a === 'dn' && i < fs.length - 1) [fs[i + 1], fs[i]] = [fs[i], fs[i + 1]];
+    if (a === 'del' && confirm('Eliminare il campo "' + fs[i].l + '"? I valori già inseriti non saranno più visibili.')) fs.splice(i, 1);
+    tCampi();
+  };
+  $('fAdd').onclick = () => { collect(); const l = prompt('Nome del nuovo campo (es. Taglia maglietta)'); if (!l) return; let k = slug(l), n = 2; while (fs.some(f => f.k === k)) k = slug(l) + '_' + n++; fs.push({ k, l, t: 'text', app: true }); tCampi(); };
+  $('fSave').onclick = () => run(async () => { collect(); await saveCfg(); toast('Campi salvati', 'ok'); });
+}
+
+/* ---------- TAB INVITI & BADGE ---------- */
+function tInviti() {
+  const inv = S.ev.config.invite, b = S.ev.config.badge, br = S.ev.config.brand;
+  const withMail = S.guests.filter(g => g.email), notInv = withMail.filter(g => !g.invito);
+  const ph = [['{nome}', 'Nome'], ['{cognome}', 'Cognome'], ['{evento}', 'Evento'], ['{data}', 'Data'], ['{luogo}', 'Luogo']].concat(S.ev.config.fields.map(f => ['{' + f.k + '}', f.l]));
+  $('tab').innerHTML = `<div class="grid g2">
+  <div class="card">
+    <h3 style="font-size:20px;margin-bottom:4px">✉️ Invito email con QR</h3>
+    <p class="small muted" style="margin-bottom:14px">Ogni ospite riceve la sua email con QR personale e il link al pass digitale. Le risposte arrivano alla tua email.</p>
+    <div class="f"><label class="l">Oggetto</label><input class="inp" id="iSub" value="${esc(inv.subject)}"></div>
+    <div class="f"><label class="l">Messaggio</label><textarea class="inp" id="iBody" rows="8">${esc(inv.body)}</textarea></div>
+    <div class="small muted">Tocca per inserire un dato personalizzato:</div>
+    <div class="chips">${ph.map(p => `<button data-ph="${esc(p[0])}">${esc(p[1])}</button>`).join('')}</div>
+    <div class="rowb"><button class="btn g sm" id="iPrev">👁 Anteprima</button><button class="btn i sm" id="iSave">Salva modello</button></div>
+    <div id="iPrevBox" style="margin-top:12px"></div>
+    <hr style="border:0;border-top:1px solid var(--line);margin:18px 0">
+    <div class="grid" style="gap:8px">
+      <button class="btn c" id="iSendNew" ${notInv.length ? '' : 'disabled'}>Invia a chi non l'ha ricevuto (${notInv.length})</button>
+      <button class="btn g" id="iSendAll" ${withMail.length ? '' : 'disabled'}>Reinvia a tutti con email (${withMail.length})</button>
+    </div>
+    <p class="small muted" style="margin-top:10px">Email disponibili oggi: <b>${S.quota == null ? '—' : S.quota}</b>. Per gli ospiti senza email usa il link WhatsApp dalla scheda ospite o i badge PDF.</p>
+  </div>
+  <div class="card">
+    <h3 style="font-size:20px;margin-bottom:4px">🏷️ Badge e inviti stampabili</h3>
+    <p class="small muted" style="margin-bottom:14px">PDF pronti da stampare, con logo, colori, nome e QR di ogni ospite.</p>
+    <div class="fg2">
+      <div class="f"><label class="l">Formato</label><select class="inp" id="bFmt"><option value="card">Badge 85×55 mm (uno per pagina)</option><option value="a4">Badge 85×55 su A4 (10 per foglio)</option><option value="a6">Invito A6 verticale</option></select></div>
+      <div class="f"><label class="l">Sotto il nome mostra</label><select class="inp" id="bFld"><option value="">— Niente —</option>${S.ev.config.fields.map(f => `<option value="${f.k}">${esc(f.l)}</option>`).join('')}</select></div>
+    </div>
+    <div class="badgeprev"><div class="bd" style="background:${esc(br.primary || '#FF5A36')}">${esc(S.ev.nome)}</div>${S.ev.logo ? `<img src="${S.ev.logo}">` : ''}<div class="bn">Mario Rossi</div><div class="bf" id="bfPrev"></div><div class="bq"></div></div>
+    <div class="grid" style="gap:8px">
+      <button class="btn c" id="bAll" ${S.guests.length ? '' : 'disabled'}>Scarica tutti (${S.guests.length})</button>
+      <button class="btn g" id="bOut">Solo chi non è ancora entrato</button>
+    </div>
+    <p class="small muted" style="margin-top:10px">Suggerimento: per i badge usa cartoncino 250 g e porta-badge 90×60 mm.</p>
+  </div></div>`;
+  $('bFmt').value = b.format || 'card'; $('bFld').value = b.field || '';
+  const prevF = () => { const f = S.ev.config.fields.find(x => x.k === $('bFld').value); $('bfPrev').textContent = f ? f.l : ''; };
+  prevF();
+  $('bFld').onchange = () => { prevF(); b.field = $('bFld').value; };
+  $('bFmt').onchange = () => b.format = $('bFmt').value;
+  let lastTa = $('iBody');
+  $('iSub').onfocus = e => lastTa = e.target; $('iBody').onfocus = e => lastTa = e.target;
+  document.querySelectorAll('[data-ph]').forEach(x => x.onclick = () => { const t = lastTa, s = t.selectionStart || t.value.length; t.value = t.value.slice(0, s) + x.dataset.ph + t.value.slice(t.selectionEnd || s); t.focus(); });
+  const sync = () => { inv.subject = $('iSub').value; inv.body = $('iBody').value; };
+  $('iPrev').onclick = () => { sync(); const g = S.guests[0] || { nome: 'Mario', cognome: 'Rossi', dati: {} }; $('iPrevBox').innerHTML = `<div class="prev"><b>${esc(fillTpl(inv.subject, g))}</b>\n\n${esc(fillTpl(inv.body, g))}\n\n[ QR CODE ]  [ Apri il tuo pass digitale ]</div>`; };
+  $('iSave').onclick = () => run(async () => { sync(); await saveCfg(); toast('Modello salvato', 'ok'); });
+  $('iSendNew').onclick = () => { sync(); run(async () => { await saveCfg(); sendInvites(S.guests.filter(g => g.email && !g.invito)); }); };
+  $('iSendAll').onclick = () => { if (!confirm('Inviare l\'email a tutti i ' + withMail.length + ' ospiti con email, anche a chi l\'ha già ricevuta?')) return; sync(); run(async () => { await saveCfg(); sendInvites(withMail); }); };
+  $('bAll').onclick = () => { saveCfg().catch(() => {}); badgePdf(S.guests, 'badge-' + slug(S.ev.nome) + '.pdf'); };
+  $('bOut').onclick = () => badgePdf(S.guests.filter(g => !g.checkin), 'badge-' + slug(S.ev.nome) + '-da-entrare.pdf');
+}
+function fillTpl(t, g) {
+  let s = String(t || '').replace(/\{nome\}/g, g.nome || '').replace(/\{cognome\}/g, g.cognome || '').replace(/\{evento\}/g, S.ev.nome).replace(/\{data\}/g, fmtData(S.ev.data)).replace(/\{luogo\}/g, S.ev.luogo || '');
+  S.ev.config.fields.forEach(f => s = s.split('{' + f.k + '}').join((g.dati || {})[f.k] || ''));
+  return s;
+}
+async function sendInvites(list) {
+  if (!list.length) return toast('Nessun destinatario', 'err');
+  if (S.quota != null && S.quota < list.length && !confirm(`Oggi puoi inviare ancora ${S.quota} email: verranno inviate le prime ${S.quota}, le altre domani. Procedere?`)) return;
+  openModal(mHead('Invio inviti') + `<div class="mb"><p id="spT">Preparazione…</p><div class="prog"><i id="spB"></i></div><p class="small muted">Non chiudere la pagina durante l'invio.</p></div><div class="mf"><button class="btn g" id="spStop">Interrompi</button></div>`);
+  let stop = false, sent = 0, skipped = 0; $('spStop').onclick = () => { stop = true; };
+  try {
+    for (let i = 0; i < list.length && !stop; i += 8) {
+      const chunk = list.slice(i, i + 8);
+      const items = chunk.map(g => ({ id: g.id, qr: qrCanvas(qrText(g), 8, 2).toDataURL('image/png').split(',')[1] }));
+      const r = await call('sendInvites', { eventId: S.ev.id, items }, true);
+      sent += r.sent; skipped += r.skipped; S.quota = r.quota;
+      const now = new Date().toLocaleString('it-IT');
+      chunk.slice(0, r.sent + r.skipped).forEach(g => { if (g.email) g.invito = g.invito || now; });
+      $('spT').textContent = `Inviate ${sent} di ${list.length}${skipped ? ' · ' + skipped + ' saltate' : ''}`;
+      $('spB').style.width = Math.min(100, (i + chunk.length) / list.length * 100) + '%';
+      if (r.quota < 1) { toast('Quota email giornaliera esaurita: riprendi domani', 'err'); break; }
+    }
+    await reloadGuests();
+    $('spT').textContent = `✅ Completato: ${sent} email inviate${skipped ? ', ' + skipped + ' saltate (email non valida)' : ''}.`;
+    $('spStop').textContent = 'Chiudi'; $('spStop').onclick = () => { closeModal(); renderTab(); };
+  } catch (e) { $('spT').textContent = '⚠️ ' + e.message; $('spStop').textContent = 'Chiudi'; $('spStop').onclick = () => { closeModal(); renderTab(); }; }
+}
+
+/* ---------- BADGE PDF ---------- */
+function hexRgb(h) { h = String(h || '#000').replace('#', ''); if (h.length === 3) h = h.split('').map(c => c + c).join(''); const n = parseInt(h, 16) || 0; return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
+function imgRatio(src) { return new Promise(r => { const i = new Image(); i.onload = () => r(i.width / i.height || 2); i.onerror = () => r(2); i.src = src; }); }
+async function badgePdf(list, name) {
+  if (!list.length) return toast('Nessun ospite', 'err');
+  busy(true);
+  try {
+    await libPDF();
+    const { jsPDF } = window.jspdf, cfg = S.ev.config, fmt = cfg.badge.format || 'card', fk = cfg.badge.field || '';
+    const pc = hexRgb(cfg.brand.primary || '#FF5A36'), logo = S.ev.logo, lr = logo ? await imgRatio(logo) : 0;
+    const lf = logo && logo.startsWith('data:image/png') ? 'PNG' : 'JPEG';
+    const qrImg = g => qrCanvas(qrText(g), 5, 1).toDataURL('image/png');
+    const card = (doc, g, x, y, W, H) => {
+      doc.setDrawColor(215); doc.setLineWidth(.2); doc.rect(x, y, W, H);
+      doc.setFillColor(...pc); doc.rect(x, y, W, 10, 'F');
+      doc.setTextColor(255); doc.setFont('helvetica', 'bold'); doc.setFontSize(8);
+      doc.text(doc.splitTextToSize(S.ev.nome, W - 8)[0], x + 4, y + 6.4);
+      let ty = y + 21;
+      if (logo) { const lh = 8, lw = Math.min(28, lh * lr); doc.addImage(logo, lf, x + 4, y + 13, lw, lh, 'logo', 'FAST'); ty = y + 30; }
+      const qs = 25; doc.addImage(qrImg(g), 'PNG', x + W - qs - 3, y + H - qs - 3, qs, qs);
+      doc.setTextColor(20); doc.setFontSize(13); doc.setFont('helvetica', 'bold');
+      const nm = doc.splitTextToSize(fullName(g), W - qs - 10).slice(0, 2); doc.text(nm, x + 4, ty);
+      const v = fk && g.dati[fk];
+      if (v) { doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.setTextColor(95); doc.text(doc.splitTextToSize(String(v), W - qs - 10).slice(0, 2), x + 4, ty + nm.length * 5.4 + .6); }
+      doc.setFontSize(6); doc.setTextColor(150); doc.setFont('helvetica', 'normal');
+      if (S.ev.data) doc.text(fmtData(S.ev.data), x + 4, y + H - 3.5);
+    };
+    const invite = (doc, g) => {
+      const W = 105, H = 148;
+      doc.setFillColor(...pc); doc.rect(0, 0, W, 9, 'F'); doc.rect(0, H - 4, W, 4, 'F');
+      let y = 18;
+      if (logo) { const lh = 14, lw = Math.min(60, lh * lr); doc.addImage(logo, lf, (W - lw) / 2, 14, lw, lh, 'logo', 'FAST'); y = 36; }
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(7); doc.setTextColor(...pc); doc.text('INVITO PERSONALE', W / 2, y, { align: 'center', charSpace: 1 });
+      doc.setTextColor(20); doc.setFontSize(15); const en = doc.splitTextToSize(S.ev.nome, 88).slice(0, 2); doc.text(en, W / 2, y + 8, { align: 'center' });
+      let yy = y + 8 + en.length * 6;
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.setTextColor(100);
+      if (S.ev.data) { doc.text(fmtData(S.ev.data), W / 2, yy, { align: 'center' }); yy += 4.5; }
+      if (S.ev.luogo) { doc.text(doc.splitTextToSize(S.ev.luogo, 88)[0], W / 2, yy, { align: 'center' }); yy += 4.5; }
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(17); doc.setTextColor(20); doc.text(doc.splitTextToSize(fullName(g), 92)[0], W / 2, yy + 9, { align: 'center' });
+      const v = fk && g.dati[fk]; if (v) { doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(100); doc.text(String(v).slice(0, 60), W / 2, yy + 15, { align: 'center' }); }
+      const qs = 48, qy = Math.min(H - qs - 14, yy + 19); doc.addImage(qrImg(g), 'PNG', (W - qs) / 2, qy, qs, qs);
+      doc.setFontSize(7.5); doc.setTextColor(120); doc.text('Mostra questo QR code all\'ingresso', W / 2, qy + qs + 5, { align: 'center' });
+    };
+    let doc;
+    if (fmt === 'a4') {
+      doc = new jsPDF({ unit: 'mm', format: 'a4' });
+      list.forEach((g, i) => { const k = i % 10; if (i && !k) doc.addPage('a4', 'p'); card(doc, g, 20 + (k % 2) * 85, 11 + Math.floor(k / 2) * 55, 85, 55); });
+    } else if (fmt === 'a6') {
+      doc = new jsPDF({ unit: 'mm', format: 'a6' });
+      list.forEach((g, i) => { if (i) doc.addPage('a6', 'p'); invite(doc, g); });
+    } else {
+      doc = new jsPDF({ unit: 'mm', format: [85, 55], orientation: 'landscape' });
+      list.forEach((g, i) => { if (i) doc.addPage([85, 55], 'landscape'); card(doc, g, 0, 0, 85, 55); });
+    }
+    doc.save(name);
+  } catch (e) { toast(e.message, 'err'); } finally { busy(false); }
+}
+
+/* ---------- TAB APP & BRAND ---------- */
+function tApp() {
+  const e = S.ev, br = e.config.brand, ap = e.config.app;
+  let logo = e.logo;
+  $('tab').innerHTML = `<div class="grid g2">
+  <div class="card">
+    <h3 style="font-size:20px;margin-bottom:4px">📱 Accesso app di accredito</h3>
+    <p class="small muted" style="margin-bottom:14px">Su ogni dispositivo dello staff apri il link (o inquadra il QR) e inserisci il PIN. Puoi usare fino a <b>${e.limiti.dispositivi}</b> dispositivi insieme.</p>
+    <div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap">
+      <div class="qrbox" id="aQr" style="width:150px"></div>
+      <div><div class="small muted">Codice evento</div><div class="bigcode">${esc(e.codiceApp)}</div>
+      <div class="small muted" style="margin-top:6px">PIN staff</div><div style="display:flex;gap:6px"><input class="inp" id="aPin" value="${esc(e.pin)}" inputmode="numeric" maxlength="8" style="width:120px;font-weight:800;font-size:18px;letter-spacing:3px"></div></div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px"><button class="btn sm" onclick="copy(appLink())">🔗 Copia link app</button><a class="btn sm c" href="${appLink()}" target="_blank">Apri app ↗</a><button class="btn sm" onclick="copy('${esc(C.BRAND)} – App accredito ${esc(e.nome)}\\n'+appLink()+'\\nPIN: '+$('aPin').value)">📋 Copia istruzioni staff</button></div>
+    <hr style="border:0;border-top:1px solid var(--line);margin:18px 0">
+    <h3 style="font-size:17px;margin-bottom:8px">Comportamento all'ingresso</h3>
+    <label class="toggle"><input type="checkbox" id="apAuto" ${ap.autoCheckin ? 'checked' : ''}> Registra ingresso subito alla scansione (senza conferma)</label>
+    <label class="toggle"><input type="checkbox" id="apWalk" ${ap.walkIn !== false ? 'checked' : ''}> Lo staff può aggiungere ospiti non in lista</label>
+    <label class="toggle"><input type="checkbox" id="apUndo" ${ap.undo !== false ? 'checked' : ''}> Lo staff può annullare un ingresso</label>
+    <label class="toggle"><input type="checkbox" id="apSnd" ${ap.sound !== false ? 'checked' : ''}> Suono e vibrazione alla scansione</label>
+  </div>
+  <div class="card">
+    <h3 style="font-size:20px;margin-bottom:12px">🎨 Evento e brand</h3>
+    <div class="f"><label class="l">Nome evento</label><input class="inp" id="aN" value="${esc(e.nome)}"></div>
+    <div class="fg2"><div class="f"><label class="l">Data e ora</label><input class="inp" id="aD" type="datetime-local" value="${esc(e.data)}"></div><div class="f"><label class="l">Luogo</label><input class="inp" id="aL" value="${esc(e.luogo)}"></div></div>
+    <label class="l">Logo (PNG trasparente consigliato)</label>
+    <div style="display:flex;gap:12px;align-items:center;margin-bottom:14px"><div class="logoprev" id="aLogo">${logo ? `<img src="${logo}">` : '<span class="small muted">Nessun logo</span>'}</div><div class="grid" style="gap:6px"><button class="btn sm" onclick="$('fileL').click()">Carica logo</button><button class="btn sm g" id="aLogoX">Rimuovi</button></div></div>
+    <div class="colrow f"><div><label class="l">Colore principale</label><input type="color" id="aP" value="${esc(br.primary || '#FF5A36')}"></div><div><label class="l">Colore scuro / testo</label><input type="color" id="aK" value="${esc(br.dark || '#13141B')}"></div></div>
+    <div class="f"><label class="l">Messaggio di benvenuto nell'app</label><input class="inp" id="aW" value="${esc(br.welcome || '')}" placeholder="Benvenuti!"></div>
+    ${e.limiti.whiteLabel ? '<p class="small"><span class="pill ok">White label attivo</span> nessun riferimento a ' + esc(C.BRAND) + ' su app, inviti e pass.</p>' : '<p class="small muted">Con il pacchetto Business rimuovi ogni riferimento a ' + esc(C.BRAND) + ' (white label).</p>'}
+  </div></div>
+  <div style="display:flex;justify-content:space-between;gap:10px;margin-top:16px;flex-wrap:wrap">
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn r" id="aReset">↺ Azzera tutti i check-in</button><button class="btn r" id="aDel">🗑 Elimina evento</button></div>
+    <button class="btn c" id="aSave" style="padding:12px 26px">Salva modifiche</button></div>`;
+  $('aQr').appendChild(qrCanvas(appLink(), 5));
+  $('fileL').onchange = ev => { const f = ev.target.files[0]; ev.target.value = ''; if (!f) return; resizeLogo(f).then(d => { logo = d; $('aLogo').innerHTML = `<img src="${d}">`; }).catch(err => toast(err.message, 'err')); };
+  $('aLogoX').onclick = () => { logo = ''; $('aLogo').innerHTML = '<span class="small muted">Nessun logo</span>'; };
+  $('aSave').onclick = () => run(async () => {
+    br.primary = $('aP').value; br.dark = $('aK').value; br.welcome = $('aW').value;
+    Object.assign(ap, { autoCheckin: $('apAuto').checked, walkIn: $('apWalk').checked, undo: $('apUndo').checked, sound: $('apSnd').checked });
+    await saveCfg({ nome: $('aN').value, data: $('aD').value, luogo: $('aL').value, pin: $('aPin').value, logo });
+    toast('Salvato ✓ I dispositivi si aggiornano entro pochi minuti', 'ok'); renderEvent();
+  });
+  $('aReset').onclick = () => { if (!confirm('Azzerare TUTTI i check-in? Utile dopo una prova generale.')) return; run(async () => { await call('resetCheckins', { eventId: S.ev.id }); await reloadGuests(); toast('Check-in azzerati', 'ok'); }); };
+  $('aDel').onclick = () => { const n = prompt('Per eliminare definitivamente evento e lista ospiti scrivi ELIMINA'); if (n !== 'ELIMINA') return; run(async () => { await call('deleteEvent', { id: S.ev.id }); toast('Evento eliminato', 'ok'); goHome(); }); };
+}
+function resizeLogo(file) {
+  return new Promise((res, rej) => {
+    const img = new Image();
+    img.onload = () => {
+      let w = img.width || 400, h = img.height || 200; const k = Math.min(1, 480 / w, 240 / h); w = Math.round(w * k); h = Math.round(h * k);
+      const c = document.createElement('canvas'); c.width = w; c.height = h; c.getContext('2d').drawImage(img, 0, 0, w, h);
+      let d = c.toDataURL('image/png');
+      if (d.length > 45000) {
+        const c2 = document.createElement('canvas'); c2.width = w; c2.height = h; const x = c2.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, w, h); x.drawImage(c, 0, 0);
+        let q = .9; do { d = c2.toDataURL('image/jpeg', q); q -= .1; } while (d.length > 45000 && q > .3);
+      }
+      if (d.length > 47000) return rej(new Error('Logo troppo complesso: prova un file più semplice'));
+      res(d);
+    };
+    img.onerror = () => rej(new Error('Immagine non valida'));
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+/* ---------- TAB LIVE ---------- */
+function tLive() {
+  $('tab').innerHTML = `<div class="kpis"><div class="kpi"><b id="kIn">—</b><span>Entrati</span></div><div class="kpi"><b id="kOut">—</b><span>Da entrare</span></div><div class="kpi"><b id="kPct">—</b><span>Presenza</span></div><div class="kpi"><b id="kDev">—</b><span>Dispositivi attivi</span></div></div>
+  <div class="grid g2"><div class="card"><h3 style="font-size:18px">Ingressi per orario</h3><div class="hbars" id="lH" style="margin-bottom:26px"></div></div>
+  <div class="card"><div class="rowb"><h3 style="font-size:18px">Ultimi movimenti</h3><span class="small muted" id="lUp"></span></div><div class="feed" id="lF"></div></div></div>`;
+  const load = () => call('stats', { eventId: S.ev.id }, true).then(s => {
+    if (!$('kIn')) return;
+    $('kIn').textContent = s.in; $('kOut').textContent = s.tot - s.in; $('kPct').textContent = s.tot ? Math.round(s.in / s.tot * 100) + '%' : '0%'; $('kDev').textContent = s.devices.length;
+    const hs = Object.keys(s.hours).sort(), mx = Math.max(1, ...Object.values(s.hours));
+    $('lH').innerHTML = hs.length ? hs.map(h => `<div style="height:${s.hours[h] / mx * 100}%"><em>${s.hours[h]}</em><span>${h}:00</span></div>`).join('') : '<p class="muted small">Ancora nessun ingresso.</p>';
+    $('lF').innerHTML = s.recent.length ? s.recent.map(r => `<div><span><b>${esc(r.ospite)}</b> <span class="pill ${r.azione.includes('IN') ? 'ok' : 'w'}">${esc(r.azione)}</span></span><span class="small muted">${fmtOra(r.ts)} · ${esc(r.postazione)}</span></div>`).join('') : '<p class="muted small">Nessun movimento.</p>';
+    $('lUp').textContent = 'agg. ' + new Date().toLocaleTimeString('it-IT');
+  }).catch(e => toast(e.message, 'err'));
+  load(); S.liveT = setInterval(load, 10000);
+}
+
+boot();
+</script>
+</body>
+</html>

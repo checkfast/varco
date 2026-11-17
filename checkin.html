@@ -1,0 +1,523 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Accredito</title>
+<meta name="theme-color" content="#0F1016">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Accredito">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+<script src="config.js"></script>
+<style>
+:root{--p:#FF5A36;--bg:#0F1016;--s1:#181A22;--s2:#232631;--tx:#F4F3F0;--mu:#8E8D97;--ok:#16B37E;--wa:#F2A516;--er:#E5484D;--safe-b:env(safe-area-inset-bottom,0px);--safe-t:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{font-family:Manrope,system-ui,sans-serif;background:var(--bg);color:var(--tx);overflow:hidden;-webkit-font-smoothing:antialiased;user-select:none}
+button,input{font:inherit;color:inherit}
+[hidden]{display:none!important}
+.disp{font-family:'Bricolage Grotesque',Manrope,sans-serif;letter-spacing:-.02em}
+.btn{border:0;border-radius:16px;padding:15px 18px;font-weight:800;font-size:16px;cursor:pointer;background:var(--s2);display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn.p{background:var(--p);color:#fff}.btn:active{transform:scale(.97)}
+.inp{width:100%;background:var(--s2);border:2px solid transparent;border-radius:14px;padding:15px 16px;font-size:17px;font-weight:700;outline:0;user-select:text}
+.inp:focus{border-color:var(--p)}
+/* login */
+.login{height:100%;display:grid;place-items:center;padding:24px;overflow:auto}
+.lbox{width:100%;max-width:380px}
+.lbox h1{font-size:34px;margin:18px 0 6px}
+.lbox label{display:block;font-size:12px;font-weight:800;color:var(--mu);margin:14px 0 6px;letter-spacing:.5px;text-transform:uppercase}
+.err{background:rgba(229,72,77,.15);color:#ff8f92;padding:12px 14px;border-radius:12px;margin-top:14px;font-weight:700;font-size:14px}
+.mark{width:52px;height:52px;border-radius:15px;background:var(--s2);position:relative}
+.mark:before,.mark:after{content:"";position:absolute;top:13px;bottom:13px;width:7px;border-radius:4px;background:var(--p)}
+.mark:before{left:15px}.mark:after{right:15px;background:#fff}
+/* app */
+#app{height:100%;display:flex;flex-direction:column}
+header{display:flex;align-items:center;gap:12px;padding:calc(10px + var(--safe-t)) 14px 10px;background:var(--s1);border-bottom:1px solid #22242e}
+header .lg{height:36px;max-width:110px;object-fit:contain;border-radius:6px;background:#fff;padding:3px}
+header .ti{flex:1;min-width:0}
+header .ti b{display:block;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+header .ti span{font-size:12px;color:var(--mu);display:flex;gap:6px;align-items:center}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--ok);display:inline-block}
+.dot.off{background:var(--er)}.dot.pend{background:var(--wa)}
+.cnt{text-align:right}.cnt b{font:800 24px 'Bricolage Grotesque';line-height:1}.cnt small{color:var(--mu);font-weight:700;font-size:13px}
+.prog{height:4px;background:var(--s2)}.prog i{display:block;height:100%;background:var(--p);width:0;transition:width .4s}
+.ibtn{width:42px;height:42px;border-radius:12px;border:0;background:var(--s2);font-size:19px;cursor:pointer;flex:none}
+.panes{flex:1;display:grid;grid-template-columns:1fr;min-height:0}
+.pane{min-height:0;display:flex;flex-direction:column;overflow:hidden}
+@media(min-width:900px){.panes{grid-template-columns:1.05fr 1fr}.pane.list{border-left:1px solid #22242e}nav.bot{display:none!important}.pane{display:flex!important}}
+/* scan */
+.scan{padding:14px;gap:12px}
+.cam{position:relative;flex:1;min-height:220px;background:#000;border-radius:24px;overflow:hidden}
+.cam video{width:100%;height:100%;object-fit:cover;display:block}
+.frame{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}
+.frame i{width:62%;aspect-ratio:1;max-width:320px;border-radius:26px;box-shadow:0 0 0 2000px rgba(0,0,0,.35);border:3px solid rgba(255,255,255,.85)}
+.frame i:after{content:"";position:absolute;left:19%;right:19%;height:2px;background:var(--p);top:50%;animation:scan 2s ease-in-out infinite;box-shadow:0 0 12px var(--p)}
+@keyframes scan{0%,100%{transform:translateY(-110px)}50%{transform:translateY(110px)}}
+.camoff{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:var(--s1);cursor:pointer;text-align:center;padding:20px}
+.camoff .big{width:86px;height:86px;border-radius:50%;background:var(--p);display:grid;place-items:center;font-size:38px;box-shadow:0 0 0 10px rgba(255,90,54,.15)}
+.camctl{position:absolute;right:12px;top:12px;display:flex;gap:8px}
+.camctl button{background:rgba(0,0,0,.55);border:0;width:42px;height:42px;border-radius:50%;font-size:18px;cursor:pointer;color:#fff;backdrop-filter:blur(6px)}
+.manual{display:flex;gap:8px}
+.welcome{font-size:13px;color:var(--mu);text-align:center}
+.recent{background:var(--s1);border-radius:18px;padding:6px 12px;max-height:168px;overflow:auto}
+.recent div{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #22242e;font-size:14px}.recent div:last-child{border:0}
+.recent em{font-style:normal;color:var(--ok);font-weight:800}
+/* list */
+.list{padding:14px 14px 0}
+.chips{display:flex;gap:6px;margin:10px 0;overflow-x:auto;scrollbar-width:none}
+.chips button{border:0;background:var(--s2);border-radius:999px;padding:8px 14px;font-weight:800;font-size:13px;white-space:nowrap;cursor:pointer;color:var(--mu)}
+.chips button.on{background:var(--tx);color:var(--bg)}
+.gl{flex:1;overflow:auto;padding-bottom:20px;-webkit-overflow-scrolling:touch}
+.gi{display:flex;align-items:center;gap:12px;padding:12px 6px;border-bottom:1px solid #1e2029;cursor:pointer}
+.gi:active{background:var(--s1)}
+.av{width:42px;height:42px;border-radius:50%;background:var(--s2);display:grid;place-items:center;font-weight:800;flex:none;font-size:15px}
+.gi.in .av{background:var(--ok);color:#fff}
+.gi .nm{flex:1;min-width:0}.gi .nm b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:16px}
+.gi .nm span{font-size:12px;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.al{color:#ff8f92!important;font-weight:800}
+.st{font-size:12px;font-weight:800;color:var(--mu)}.gi.in .st{color:var(--ok)}
+.empty{text-align:center;color:var(--mu);padding:40px 10px}
+nav.bot{display:flex;background:var(--s1);border-top:1px solid #22242e;padding:6px 6px calc(6px + var(--safe-b))}
+nav.bot button{flex:1;border:0;background:none;padding:8px;border-radius:12px;font-weight:800;font-size:12px;color:var(--mu);display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer}
+nav.bot button i{font-style:normal;font-size:22px}
+nav.bot button.on{color:var(--tx);background:var(--s2)}
+@media(max-width:899px){.pane:not(.on){display:none}}
+/* result */
+.res{position:fixed;inset:0;z-index:40;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px 22px calc(28px + var(--safe-b));text-align:center;animation:rin .18s ease-out}
+@keyframes rin{from{opacity:0;transform:scale(1.04)}}
+.res.ok{background:var(--ok)}.res.wa{background:#C98500}.res.er{background:var(--er)}.res.cf{background:var(--s1)}
+.res .ic{width:96px;height:96px;border-radius:50%;background:rgba(255,255,255,.95);display:grid;place-items:center;font-size:52px;font-weight:800;margin-bottom:16px}
+.res.ok .ic{color:var(--ok)}.res.wa .ic{color:#C98500}.res.er .ic{color:var(--er)}.res.cf .ic{background:var(--p);color:#fff}
+.res h4{font-size:15px;letter-spacing:3px;font-weight:800;opacity:.85}
+.res .nm{font:800 clamp(34px,8vw,56px)/1.05 'Bricolage Grotesque';margin:8px 0 6px;max-width:900px}
+.res .meta{opacity:.85;font-weight:700;margin-bottom:14px}
+.flds{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:640px;margin-bottom:18px}
+.fl{background:rgba(0,0,0,.2);padding:8px 14px;border-radius:999px;font-weight:700;font-size:15px}
+.fl.a{background:#FFE08A;color:#4a3000}
+.res .acts{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;width:100%;max-width:520px}
+.res .acts .btn{flex:1;min-width:150px;background:rgba(0,0,0,.25);color:#fff;padding:18px}
+.res .acts .btn.w{background:#fff;color:#111}
+.res.cf .acts .btn.w{background:var(--ok);color:#fff}
+.timer{position:absolute;left:0;bottom:0;height:5px;background:rgba(255,255,255,.7);animation:tm linear forwards}
+@keyframes tm{from{width:100%}to{width:0}}
+/* sheet */
+.sheet{position:fixed;inset:0;z-index:45;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;justify-content:center}
+.sbox{background:var(--s1);width:100%;max-width:520px;border-radius:24px 24px 0 0;padding:22px 20px calc(20px + var(--safe-b));max-height:92vh;overflow:auto}
+@media(min-width:600px){.sheet{align-items:center}.sbox{border-radius:24px}}
+.sbox h3{font-size:22px;margin-bottom:14px}
+.sbox .row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.sbox label{display:flex;align-items:center;gap:10px;font-weight:700;padding:10px 0;cursor:pointer}
+.sbox label input[type=checkbox]{width:22px;height:22px;accent-color:var(--p)}
+.toast{position:fixed;left:50%;top:calc(14px + var(--safe-t));transform:translateX(-50%);z-index:60;background:#fff;color:#111;padding:12px 18px;border-radius:14px;font-weight:800;box-shadow:0 10px 30px rgba(0,0,0,.4);max-width:92vw;text-align:center}
+.toast.er{background:var(--er);color:#fff}.toast.wa{background:var(--wa);color:#111}
+.pw{font-size:11px;color:#55545c;text-align:center;padding:4px}
+</style>
+</head>
+<body>
+
+<div id="login" class="login" hidden><div class="lbox">
+  <div class="mark" id="lMark"></div>
+  <h1 class="disp">Accredito ospiti</h1>
+  <p style="color:var(--mu)">Inserisci i dati ricevuti dall'organizzatore.</p>
+  <form id="fL">
+    <label>Codice evento</label><input class="inp" id="lc" autocomplete="off" autocapitalize="characters" style="text-transform:uppercase;letter-spacing:3px" maxlength="10" required>
+    <label>PIN staff</label><input class="inp" id="lp" type="password" inputmode="numeric" maxlength="8" required>
+    <label>Nome postazione</label><input class="inp" id="ld" placeholder="Es. Ingresso principale" maxlength="30">
+    <button class="btn p" style="width:100%;margin-top:22px;padding:17px" id="lgo">Entra</button>
+    <div class="err" id="lerr" hidden></div>
+  </form>
+</div></div>
+
+<div id="app" hidden>
+  <header>
+    <img class="lg" id="hLogo" hidden alt="">
+    <div class="ti"><b id="hName">Evento</b><span><i class="dot" id="hDot"></i><span id="hSt">Online</span></span></div>
+    <div class="cnt"><b id="hIn">0</b><small> / <span id="hTot">0</span></small></div>
+    <button class="ibtn" id="hMenu" aria-label="Menu">⋯</button>
+  </header>
+  <div class="prog"><i id="hBar"></i></div>
+
+  <div class="panes">
+    <section class="pane scan on" id="pScan">
+      <div class="cam" id="cam">
+        <video id="vid" playsinline muted autoplay></video>
+        <div class="frame" id="frame" hidden><i></i></div>
+        <div class="camctl" id="camctl" hidden><button id="cFlip" aria-label="Cambia fotocamera">⟲</button><button id="cStop" aria-label="Spegni">✕</button></div>
+        <div class="camoff" id="camoff"><div class="big">⌗</div><b style="font-size:18px">Tocca per scansionare</b><span style="color:var(--mu);font-size:14px">Inquadra il QR code dell'ospite</span></div>
+      </div>
+      <div class="manual"><input class="inp" id="man" placeholder="Codice o nome…" style="padding:12px 14px;font-size:15px" autocomplete="off"><button class="btn" id="manGo">Vai</button></div>
+      <div class="welcome" id="wel"></div>
+      <div class="recent" id="recent" hidden></div>
+    </section>
+
+    <section class="pane list" id="pList">
+      <input class="inp" id="q" placeholder="🔎 Cerca ospite…" autocomplete="off" type="search">
+      <div class="chips" id="chips"><button data-f="all" class="on">Tutti</button><button data-f="out">Da entrare</button><button data-f="in">Entrati</button><button data-f="alert">⚠ Da attenzionare</button></div>
+      <div class="gl" id="gl"></div>
+    </section>
+  </div>
+
+  <nav class="bot">
+    <button data-p="pScan" class="on"><i>⌗</i>Scansiona</button>
+    <button data-p="pList"><i>☰</i>Lista</button>
+    <button id="bAdd"><i>＋</i>Ospite</button>
+  </nav>
+  <div class="pw" id="pw"></div>
+</div>
+
+<div class="res" id="res" hidden></div>
+<div class="sheet" id="sheet" hidden><div class="sbox" id="sbox"></div></div>
+
+<script>
+const C = window.VARCO;
+const $ = id => document.getElementById(id);
+const A = {
+  s: null, ev: null, g: new Map(), tok: new Map(), since: 0, q: [], online: navigator.onLine,
+  filter: 'all', open: false, lastCode: '', lastAt: 0, set: { sound: true }, recent: []
+};
+const LS = { get: (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch (e) { return d; } }, set: (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} } };
+let devId = LS.get('vci_dev', null);
+if (!devId) { devId = Array.from(crypto.getRandomValues(new Uint8Array(8)), b => 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[b % 32]).join(''); LS.set('vci_dev', devId); }
+
+function toast(m, t) { const d = document.createElement('div'); d.className = 'toast ' + (t || ''); d.textContent = m; document.body.appendChild(d); setTimeout(() => d.remove(), 3200); }
+function norm(s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
+function fullName(g) { return ((g.nome || '') + ' ' + (g.cognome || '')).trim() || '—'; }
+function cfg() { return A.ev.config || {}; }
+function fields() { return cfg().fields || []; }
+let ac;
+function beep(t) {
+  if (cfg().app && cfg().app.sound === false) return;
+  try {
+    ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+    const o = ac.createOscillator(), g = ac.createGain(); o.connect(g); g.connect(ac.destination);
+    const f = { ok: [880, 1320], wa: [520, 520], er: [240, 170] }[t]; const n = ac.currentTime;
+    o.frequency.setValueAtTime(f[0], n); o.frequency.setValueAtTime(f[1], n + .1);
+    g.gain.setValueAtTime(.2, n); g.gain.exponentialRampToValueAtTime(.001, n + .32); o.start(n); o.stop(n + .34);
+  } catch (e) {}
+  if (navigator.vibrate) navigator.vibrate(t === 'ok' ? 70 : [90, 60, 90]);
+}
+
+/* ========== LOGIN ========== */
+const qp = new URLSearchParams(location.search);
+if (qp.get('c')) $('lc').value = qp.get('c');
+$('ld').value = LS.get('vci_name', '');
+$('fL').onsubmit = async e => {
+  e.preventDefault(); $('lerr').hidden = true; $('lgo').disabled = true; $('lgo').textContent = 'Accesso…';
+  try {
+    const name = $('ld').value.trim() || 'Postazione';
+    LS.set('vci_name', name);
+    const r = await api('appLogin', { code: $('lc').value, pin: $('lp').value, device: name, devId });
+    A.s = { dtoken: r.dtoken, name }; A.ev = r.event;
+    LS.set('vci_s', A.s); LS.set('vci_ev', A.ev);
+    A.g.clear(); A.since = 0; A.q = LS.get('vci_q_' + A.ev.id, []);
+    startApp(true);
+  } catch (x) { $('lerr').textContent = x.message; $('lerr').hidden = false; }
+  $('lgo').disabled = false; $('lgo').textContent = 'Entra';
+};
+function logout() {
+  if (A.q.length && !confirm('Ci sono ' + A.q.length + ' ingressi non ancora sincronizzati. Uscire comunque?')) return;
+  stopCam(); clearTimeout(A.syncT); localStorage.removeItem('vci_s'); A.s = null;
+  $('app').hidden = true; $('login').hidden = false; closeSheet();
+}
+
+/* ========== DATI LOCALI ========== */
+function index(g) {
+  g._s = norm([g.nome, g.cognome, g.cognome, g.nome, g.email, g.telefono].concat(Object.values(g.dati || {})).join(' '));
+  g._a = fields().some(f => f.alert && g.dati && g.dati[f.k]);
+  return g;
+}
+function put(g) { if (g.del) { const o = A.g.get(g.id); if (o) A.tok.delete(o.token); A.g.delete(g.id); return; } index(g); A.g.set(g.id, g); A.tok.set(g.token, g); }
+let saveT;
+function persist() { clearTimeout(saveT); saveT = setTimeout(() => { LS.set('vci_g_' + A.ev.id, { since: A.since, list: [...A.g.values()].map(g => { const o = Object.assign({}, g); delete o._s; delete o._a; return o; }) }); LS.set('vci_q_' + A.ev.id, A.q); }, 400); }
+function counts() {
+  let i = 0; A.g.forEach(g => { if (g.checkin) i++; });
+  $('hIn').textContent = i; $('hTot').textContent = A.g.size; $('hBar').style.width = (A.g.size ? i / A.g.size * 100 : 0) + '%';
+}
+function status() {
+  const d = $('hDot'), s = $('hSt');
+  d.className = 'dot' + (!A.online ? ' off' : A.q.length ? ' pend' : '');
+  s.textContent = (!A.online ? 'Offline' : A.q.length ? 'Sincronizzo ' + A.q.length + '…' : 'Online') + ' · ' + A.s.name + (A.devs ? ' · ' + A.devs + ' disp.' : '');
+}
+
+/* ========== AVVIO ========== */
+function applyBrand() {
+  const b = cfg().brand || {};
+  document.documentElement.style.setProperty('--p', b.primary || '#FF5A36');
+  document.title = A.ev.nome + ' · Accredito';
+  $('hName').textContent = A.ev.nome;
+  if (A.ev.logo) { $('hLogo').src = A.ev.logo; $('hLogo').hidden = false; } else $('hLogo').hidden = true;
+  $('wel').textContent = b.welcome || '';
+  $('pw').textContent = A.ev.whiteLabel ? '' : 'Accrediti con ' + C.BRAND;
+  $('bAdd').hidden = cfg().app && cfg().app.walkIn === false;
+}
+async function startApp(fresh) {
+  $('login').hidden = true; $('app').hidden = false;
+  applyBrand();
+  const cache = LS.get('vci_g_' + A.ev.id, null);
+  if (cache && !fresh) { cache.list.forEach(put); A.since = cache.since || 0; }
+  A.q = LS.get('vci_q_' + A.ev.id, []);
+  counts(); renderList(); status();
+  await fullLoad();
+  loop();
+  try { if ('wakeLock' in navigator) { A.wl = await navigator.wakeLock.request('screen'); } } catch (e) {}
+}
+async function fullLoad() {
+  try {
+    const r = await api('appData', { dtoken: A.s.dtoken });
+    A.ev = r.event; LS.set('vci_ev', A.ev); applyBrand();
+    A.g.clear(); A.tok.clear(); r.guests.forEach(put);
+    A.q.forEach(it => { const g = A.g.get(it.id); if (g) g.checkin = it.mode !== 'undo'; });
+    A.since = r.now; A.devs = r.devices; A.online = true; A.lastFull = Date.now();
+    persist(); counts(); renderList();
+  } catch (e) { handleErr(e); }
+  status();
+}
+function handleErr(e) {
+  if (e.message === 'SESSIONE' || /scaduta/.test(e.message)) { toast(e.message === 'SESSIONE' ? 'Sessione terminata: accedi di nuovo' : e.message, 'er'); A.q = []; logout(); return; }
+  if (e.net) A.online = false;
+}
+async function flush() {
+  while (A.q.length) {
+    const it = A.q[0];
+    try {
+      const r = await api('appCheckin', { dtoken: A.s.dtoken, id: it.id, mode: it.mode });
+      A.q.shift(); A.online = true;
+      if (r.guest) {
+        const loc = A.g.get(r.guest.id);
+        if (r.status === 'ALREADY' && it.mode !== 'undo' && r.guest.checkinBy !== A.s.name) toast('⚠ ' + fullName(r.guest) + ' era già entrato alle ' + fmtOra(r.guest.checkinAt) + ' (' + r.guest.checkinBy + ')', 'wa');
+        put(Object.assign(loc || {}, r.guest));
+      }
+    } catch (e) { handleErr(e); if (e.net) break; A.q.shift(); toast(e.message, 'er'); }
+    persist();
+  }
+}
+async function sync() {
+  if (!A.s) return;
+  await flush();
+  if (!A.s) return;
+  try {
+    if (Date.now() - (A.lastFull || 0) > 180000) { await fullLoad(); return; }
+    const r = await api('appSync', { dtoken: A.s.dtoken, since: A.since });
+    A.online = true; A.devs = r.devices;
+    if (r.changes.length) {
+      r.changes.forEach(c => { if (!A.q.some(it => it.id === c.id)) put(c); });
+      counts(); renderList(); persist();
+    }
+    A.since = r.now;
+  } catch (e) { handleErr(e); }
+  if (A.s) status();
+}
+function loop() { clearTimeout(A.syncT); const go = async () => { await sync(); if (A.s) A.syncT = setTimeout(go, A.q.length ? 2000 : 4000); }; A.syncT = setTimeout(go, 1500); }
+window.addEventListener('online', () => { A.online = true; status(); sync(); });
+window.addEventListener('offline', () => { A.online = false; status(); });
+document.addEventListener('visibilitychange', async () => { if (!document.hidden && A.s) { sync(); try { if ('wakeLock' in navigator) A.wl = await navigator.wakeLock.request('screen'); } catch (e) {} } });
+
+/* ========== CHECK-IN ========== */
+function checkin(g, mode) {
+  const undo = mode === 'undo';
+  g.checkin = !undo; g.checkinAt = undo ? '' : new Date().toISOString(); g.checkinBy = undo ? '' : A.s.name;
+  A.q = A.q.filter(it => it.id !== g.id); A.q.push({ id: g.id, mode: undo ? 'undo' : 'in' });
+  if (!undo) { A.recent.unshift({ n: fullName(g), t: g.checkinAt }); A.recent = A.recent.slice(0, 8); renderRecent(); }
+  persist(); counts(); renderList(); status();
+  flush().then(() => { status(); counts(); renderList(); });
+}
+function renderRecent() {
+  $('recent').hidden = !A.recent.length;
+  $('recent').innerHTML = A.recent.map(r => `<div><span>${esc(r.n)}</span><em>${fmtOra(r.t)}</em></div>`).join('');
+}
+function handleCode(raw) {
+  const t = String(raw || '').trim(); if (!t) return;
+  const now = Date.now(); if (t === A.lastCode && now - A.lastAt < 3000) return;
+  A.lastCode = t; A.lastAt = now;
+  const p = t.split('|');
+  let g = null;
+  if (p[0] === 'VRC') {
+    if (p[1] !== A.ev.id) { beep('er'); return showRes('wrong'); }
+    g = A.tok.get(p[2]);
+  } else g = A.tok.get(t) || A.g.get(t);
+  if (!g) {
+    if (p[0] !== 'VRC') { // ricerca per nome dal campo manuale
+      const q = norm(t), m = [...A.g.values()].filter(x => x._s.includes(q));
+      if (m.length === 1) g = m[0];
+      else if (m.length > 1) { goPane('pList'); $('q').value = t; renderList(); return; }
+    }
+    if (!g) { beep('er'); return showRes('notfound', null, t); }
+  }
+  openGuest(g, true);
+}
+function openGuest(g, scanned) {
+  if (g.checkin) { beep('wa'); return showRes('already', g); }
+  if (scanned && cfg().app && cfg().app.autoCheckin) { checkin(g, 'in'); beep('ok'); return showRes('ok', g); }
+  if (scanned) beep('ok');
+  showRes('confirm', g);
+}
+function fieldChips(g) {
+  return fields().filter(f => f.app !== false && g.dati && g.dati[f.k]).map(f => {
+    const v = g.dati[f.k]; const txt = f.t === 'check' ? (f.alert ? '★ ' : '') + f.l : f.l + ': ' + v;
+    return `<span class="fl ${f.alert ? 'a' : ''}">${f.alert && f.t !== 'check' ? '⚠ ' : ''}${esc(txt)}</span>`;
+  }).join('');
+}
+let resT;
+function showRes(kind, g, extra) {
+  clearTimeout(resT); A.open = true;
+  const r = $('res'), ap = cfg().app || {}, undo = ap.undo !== false, walk = ap.walkIn !== false;
+  let cls, ic, h, body = '', acts = '', auto = 0;
+  if (kind === 'ok') { cls = 'ok'; ic = '✓'; h = 'BENVENUTO/A'; auto = 2800; acts = (undo ? `<button class="btn" data-a="undo">Annulla ingresso</button>` : '') + `<button class="btn w" data-a="close">Avanti →</button>`; }
+  else if (kind === 'confirm') { cls = 'cf'; ic = '?'; h = 'IN LISTA'; acts = `<button class="btn" data-a="close">Chiudi</button><button class="btn w" data-a="in">✓ Registra ingresso</button>`; }
+  else if (kind === 'already') { cls = 'wa'; ic = '!'; h = 'GIÀ ENTRATO/A'; body = `<div class="meta">alle ${fmtOra(g.checkinAt)} · ${esc(g.checkinBy || '')}</div>`; acts = (undo ? `<button class="btn" data-a="undo">Annulla ingresso</button>` : '') + `<button class="btn w" data-a="close">Chiudi</button>`; }
+  else if (kind === 'notfound') { cls = 'er'; ic = '✕'; h = 'NON IN LISTA'; body = `<div class="meta">${extra && extra.length < 40 && !/^VRC/.test(extra) ? esc(extra) : 'QR non riconosciuto'}</div>`; acts = (walk ? `<button class="btn" data-a="add">＋ Aggiungi ospite</button>` : '') + `<button class="btn w" data-a="close">Chiudi</button>`; }
+  else { cls = 'er'; ic = '✕'; h = 'QR NON VALIDO'; body = '<div class="meta">Questo QR appartiene a un altro evento</div>'; acts = `<button class="btn w" data-a="close">Chiudi</button>`; }
+  r.className = 'res ' + cls;
+  r.innerHTML = `<div class="ic">${ic}</div><h4>${h}</h4>${g ? `<div class="nm">${esc(fullName(g))}</div>` : ''}${body}${g ? `<div class="flds">${fieldChips(g)}</div>` : ''}<div class="acts">${acts}</div>${auto ? `<div class="timer" style="animation-duration:${auto}ms"></div>` : ''}`;
+  r.hidden = false;
+  r.onclick = e => {
+    const a = e.target.closest('[data-a]'); if (!a) return;
+    const act = a.dataset.a;
+    if (act === 'in') { checkin(g, 'in'); beep('ok'); return showRes('ok', g); }
+    if (act === 'undo') { if (confirm('Annullare l\'ingresso di ' + fullName(g) + '?')) { checkin(g, 'undo'); toast('Ingresso annullato'); } return closeRes(); }
+    if (act === 'add') { closeRes(); return addSheet(extra && !/^VRC/.test(extra) ? extra : ''); }
+    closeRes();
+  };
+  if (auto) resT = setTimeout(closeRes, auto);
+}
+function closeRes() { clearTimeout(resT); $('res').hidden = true; A.open = false; A.lastAt = Date.now() - 1500; }
+
+/* ========== FOTOCAMERA ========== */
+let stream = null, facing = 'environment', detector = null, raf = 0, lastScan = 0;
+const cv = document.createElement('canvas'), cx = cv.getContext('2d', { willReadFrequently: true });
+async function startCam() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return toast('Fotocamera non disponibile: serve HTTPS o un browser recente', 'er');
+  try {
+    stopCam();
+    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: facing }, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false });
+    $('vid').srcObject = stream; await $('vid').play();
+    $('camoff').hidden = true; $('frame').hidden = false; $('camctl').hidden = false;
+    if (!detector && 'BarcodeDetector' in window) {
+      try { const f = await BarcodeDetector.getSupportedFormats(); if (f.includes('qr_code')) detector = new BarcodeDetector({ formats: ['qr_code'] }); } catch (e) {}
+    }
+    LS.set('vci_cam', 1);
+    tick();
+  } catch (e) { toast('Permesso fotocamera negato o non disponibile', 'er'); stopCam(); }
+}
+function stopCam() {
+  cancelAnimationFrame(raf);
+  if (stream) stream.getTracks().forEach(t => t.stop()); stream = null;
+  $('camoff').hidden = false; $('frame').hidden = true; $('camctl').hidden = true;
+}
+async function tick() {
+  raf = requestAnimationFrame(tick);
+  const v = $('vid'); const now = performance.now();
+  if (!stream || A.open || v.readyState < 2 || now - lastScan < 160) return;
+  lastScan = now;
+  try {
+    if (detector) {
+      const c = await detector.detect(v); if (c.length) handleCode(c[0].rawValue);
+    } else if (window.jsQR) {
+      const w = Math.min(640, v.videoWidth), h = Math.round(v.videoHeight * w / v.videoWidth);
+      cv.width = w; cv.height = h; cx.drawImage(v, 0, 0, w, h);
+      const d = cx.getImageData(0, 0, w, h), q = jsQR(d.data, w, h, { inversionAttempts: 'dontInvert' });
+      if (q && q.data) handleCode(q.data);
+    }
+  } catch (e) {}
+}
+$('camoff').onclick = startCam;
+$('cStop').onclick = stopCam;
+$('cFlip').onclick = () => { facing = facing === 'environment' ? 'user' : 'environment'; startCam(); };
+$('manGo').onclick = () => { handleCode($('man').value); $('man').value = ''; $('man').blur(); };
+$('man').onkeydown = e => { if (e.key === 'Enter') $('manGo').click(); };
+
+// lettori barcode USB/Bluetooth (emulano la tastiera)
+let kb = '', kbT = 0;
+document.addEventListener('keydown', e => {
+  if (!A.s || $('app').hidden) return;
+  const tag = (document.activeElement || {}).tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+  if (e.key === 'Enter') { if (kb.length > 3) { if (A.open) closeRes(); handleCode(kb); } kb = ''; return; }
+  if (e.key === 'Escape' && A.open) return closeRes();
+  if (e.key.length === 1) { const n = Date.now(); if (n - kbT > 120) kb = ''; kb += e.key; kbT = n; }
+});
+
+/* ========== LISTA ========== */
+function renderList() {
+  if (!A.ev) return;
+  const q = norm($('q').value.trim());
+  let arr = [...A.g.values()];
+  if (A.filter === 'in') arr = arr.filter(g => g.checkin);
+  if (A.filter === 'out') arr = arr.filter(g => !g.checkin);
+  if (A.filter === 'alert') arr = arr.filter(g => g._a);
+  if (q) arr = arr.filter(g => g._s.includes(q));
+  arr.sort((a, b) => ((a.cognome || a.nome) + a.nome).localeCompare((b.cognome || b.nome) + b.nome, 'it'));
+  const show = arr.slice(0, 200), sub = fields().filter(f => f.app !== false);
+  $('gl').innerHTML = show.map(g => {
+    const al = fields().filter(f => f.alert && g.dati[f.k]).map(f => f.t === 'check' ? f.l : g.dati[f.k]);
+    const info = sub.filter(f => !f.alert && g.dati[f.k]).slice(0, 2).map(f => g.dati[f.k]);
+    return `<div class="gi ${g.checkin ? 'in' : ''}" data-id="${g.id}"><div class="av">${g.checkin ? '✓' : esc(((g.nome || ' ')[0] + (g.cognome || ' ')[0]).toUpperCase())}</div>
+      <div class="nm"><b>${esc((g.cognome ? g.cognome + ' ' : '') + (g.nome || ''))}</b><span class="${al.length ? 'al' : ''}">${esc(al.length ? '⚠ ' + al.join(' · ') : info.join(' · '))}</span></div>
+      <div class="st">${g.checkin ? fmtOra(g.checkinAt) : ''}</div></div>`;
+  }).join('') + (arr.length > 200 ? `<div class="empty">Altri ${arr.length - 200}: affina la ricerca</div>` : '') + (!arr.length ? `<div class="empty">${A.g.size ? 'Nessun ospite trovato' : 'Lista vuota'}</div>` : '');
+}
+$('gl').onclick = e => { const it = e.target.closest('.gi'); if (!it) return; const g = A.g.get(it.dataset.id); if (g) openGuest(g, false); };
+$('q').oninput = renderList;
+$('chips').onclick = e => { const b = e.target.closest('[data-f]'); if (!b) return; A.filter = b.dataset.f; document.querySelectorAll('#chips button').forEach(x => x.classList.toggle('on', x === b)); renderList(); };
+function goPane(id) {
+  document.querySelectorAll('.pane').forEach(p => p.classList.toggle('on', p.id === id));
+  document.querySelectorAll('nav.bot [data-p]').forEach(b => b.classList.toggle('on', b.dataset.p === id));
+  if (id === 'pList' && stream && innerWidth < 900) stopCam();
+}
+document.querySelectorAll('nav.bot [data-p]').forEach(b => b.onclick = () => goPane(b.dataset.p));
+
+/* ========== SHEET: AGGIUNTA OSPITE / MENU ========== */
+function sheet(html) { $('sbox').innerHTML = html; $('sheet').hidden = false; }
+function closeSheet() { $('sheet').hidden = true; }
+$('sheet').onclick = e => { if (e.target.id === 'sheet') closeSheet(); };
+function addSheet(pref) {
+  const p = String(pref || '').split(/\s+/);
+  sheet(`<h3 class="disp">Aggiungi ospite</h3>
+    <div class="row"><input class="inp" id="aN" placeholder="Nome" value="${esc(p[0] || '')}"><input class="inp" id="aC" placeholder="Cognome" value="${esc(p.slice(1).join(' '))}"></div>
+    <input class="inp" id="aT" placeholder="Telefono (facoltativo)" type="tel" style="margin-bottom:8px">
+    <input class="inp" id="aNo" placeholder="Note (es. ospite di…)" style="margin-bottom:6px">
+    <label><input type="checkbox" id="aIn" checked> Registra subito l'ingresso</label>
+    <div class="row" style="margin-top:8px"><button class="btn" onclick="closeSheet()">Annulla</button><button class="btn p" id="aGo">Aggiungi</button></div>`);
+  $('aN').focus();
+  $('aGo').onclick = async () => {
+    const guest = { nome: $('aN').value, cognome: $('aC').value, telefono: $('aT').value, dati: $('aNo').value ? { note: $('aNo').value } : {} };
+    if (!guest.nome.trim() && !guest.cognome.trim()) return toast('Inserisci nome o cognome', 'er');
+    $('aGo').disabled = true;
+    try {
+      const r = await api('appAddGuest', { dtoken: A.s.dtoken, guest, checkin: $('aIn').checked });
+      put(r.guest); persist(); counts(); renderList(); closeSheet();
+      if (r.guest.checkin) { A.recent.unshift({ n: fullName(r.guest), t: r.guest.checkinAt }); renderRecent(); beep('ok'); showRes('ok', r.guest); }
+      else toast('Ospite aggiunto');
+    } catch (e) { toast(e.net ? 'Serve la connessione per aggiungere ospiti' : e.message, 'er'); $('aGo').disabled = false; }
+  };
+}
+$('bAdd').onclick = () => addSheet('');
+$('hMenu').onclick = () => {
+  sheet(`<h3 class="disp">${esc(A.ev.nome)}</h3>
+    <p style="color:var(--mu);margin:-8px 0 14px">${esc(fmtData(A.ev.data))}${A.ev.luogo ? ' · ' + esc(A.ev.luogo) : ''}<br>Postazione: <b>${esc(A.s.name)}</b></p>
+    <div style="display:grid;gap:8px">
+      ${cfg().app && cfg().app.walkIn === false ? '' : '<button class="btn" onclick="closeSheet();addSheet(\'\')">＋ Aggiungi ospite</button>'}
+      <button class="btn" id="mSync">↻ Aggiorna lista ora</button>
+      <button class="btn" id="mFs">⛶ Schermo intero</button>
+      <button class="btn" style="color:#ff8f92" onclick="logout()">↩ Esci da questo dispositivo</button>
+      <button class="btn p" onclick="closeSheet()">Chiudi</button>
+    </div>
+    <p style="color:var(--mu);font-size:12px;margin-top:14px;text-align:center">${A.q.length ? A.q.length + ' ingressi in attesa di sincronizzazione' : 'Tutto sincronizzato ✓'}</p>`);
+  $('mSync').onclick = async () => { closeSheet(); await flush(); await fullLoad(); toast('Lista aggiornata'); };
+  $('mFs').onclick = () => { closeSheet(); const d = document.documentElement; (d.requestFullscreen || d.webkitRequestFullscreen || (() => {})).call(d); };
+};
+
+/* ========== BOOT ========== */
+(function () {
+  const s = LS.get('vci_s', null), ev = LS.get('vci_ev', null);
+  if (s && ev && (!qp.get('c') || qp.get('c').toUpperCase() === (ev.codiceApp || qp.get('c').toUpperCase()))) { A.s = s; A.ev = ev; startApp(false); }
+  else $('login').hidden = false;
+  if (!C.API_URL) { $('lerr').textContent = 'Configura API_URL in config.js'; $('lerr').hidden = false; }
+})();
+</script>
+</body>
+</html>

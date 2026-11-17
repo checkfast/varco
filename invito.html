@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Il tuo pass</title>
+<meta name="theme-color" content="#13141B">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script src="config.js"></script>
+<style>
+:root{--p:#FF5A36;--k:#13141B}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Manrope,system-ui,sans-serif;background:#EFEBE4;color:#18181d;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px 14px;-webkit-font-smoothing:antialiased}
+.pass{width:100%;max-width:400px;background:#fff;border-radius:28px;overflow:hidden;box-shadow:0 30px 70px -30px rgba(0,0,0,.45)}
+.top{background:var(--k);color:#fff;padding:26px 24px 30px;text-align:center;position:relative}
+.top img{max-height:56px;max-width:180px;background:#fff;border-radius:10px;padding:6px;margin-bottom:14px}
+.top small{display:block;font-size:11px;letter-spacing:3px;font-weight:800;color:var(--p);margin-bottom:6px}
+.top h1{font:800 27px/1.1 'Bricolage Grotesque';letter-spacing:-.02em}
+.top p{opacity:.75;font-size:14px;margin-top:8px}
+.cut{height:22px;background:radial-gradient(circle at 0 50%,#EFEBE4 11px,transparent 12px),radial-gradient(circle at 100% 50%,#EFEBE4 11px,transparent 12px);border-bottom:2px dashed #e6e0d6;margin-top:-11px;position:relative}
+.body{padding:20px 24px 26px;text-align:center}
+.who{font-size:12px;color:#888;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+.name{font:800 28px 'Bricolage Grotesque';margin:2px 0 16px}
+#qr canvas{width:230px;height:230px;image-rendering:pixelated}
+.hint{font-size:13px;color:#777;margin-top:8px}
+.ok{display:inline-block;background:#DDF5EB;color:#0B7A53;font-weight:800;border-radius:999px;padding:6px 14px;font-size:13px;margin-bottom:12px}
+.acts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:20px}
+.btn{border:0;border-radius:14px;padding:13px;font:700 14px Manrope;cursor:pointer;background:#F1EDE6;color:#18181d;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:6px}
+.btn.p{background:var(--p);color:#fff}
+.foot{font-size:11px;color:#aaa;margin-top:16px}
+.msg{text-align:center;padding:40px 24px}
+.spin{width:36px;height:36px;border:4px solid #e6e0d6;border-top-color:var(--p);border-radius:50%;animation:s .7s linear infinite;margin:0 auto}
+@keyframes s{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="pass" id="pass"><div class="msg"><div class="spin"></div></div></div>
+<script>
+const C = window.VARCO, q = new URLSearchParams(location.search);
+function qrCanvas(text, scale) {
+  const qq = qrcode(0, 'M'); qq.addData(text); qq.make();
+  const n = qq.getModuleCount(), m = 2, s = (n + m * 2) * scale, c = document.createElement('canvas');
+  c.width = c.height = s; const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, s, s); x.fillStyle = '#000';
+  for (let r = 0; r < n; r++) for (let k = 0; k < n; k++) if (qq.isDark(r, k)) x.fillRect((k + m) * scale, (r + m) * scale, scale, scale);
+  return c;
+}
+function ics(ev) {
+  const m = String(ev.data || '').match(/(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2}))?/); if (!m) return null;
+  const st = m[1] + m[2] + m[3] + 'T' + (m[4] || '19') + (m[5] || '00') + '00';
+  const end = m[1] + m[2] + m[3] + 'T' + String(Math.min(23, +(m[4] || 19) + 3)).padStart(2, '0') + (m[5] || '00') + '00';
+  const t = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Pass//IT', 'BEGIN:VEVENT', 'UID:' + Date.now() + '@pass', 'DTSTART:' + st, 'DTEND:' + end,
+    'SUMMARY:' + ev.nome.replace(/[,;]/g, ' '), 'LOCATION:' + (ev.luogo || '').replace(/[,;]/g, ' '), 'DESCRIPTION:Il tuo pass: ' + location.href, 'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
+  return URL.createObjectURL(new Blob([t], { type: 'text/calendar' }));
+}
+(async function () {
+  const box = document.getElementById('pass');
+  try {
+    if (!q.get('e') || !q.get('t')) throw new Error('Link non valido');
+    const d = await api('invite', { e: q.get('e'), t: q.get('t') });
+    const ev = d.evento, b = ev.brand || {}, nm = (d.ospite.nome + ' ' + d.ospite.cognome).trim();
+    document.documentElement.style.setProperty('--p', b.primary || '#FF5A36');
+    document.documentElement.style.setProperty('--k', b.dark || '#13141B');
+    document.title = 'Pass · ' + ev.nome;
+    const cal = ics(ev);
+    box.innerHTML = `<div class="top">${ev.logo ? `<img src="${ev.logo}" alt="">` : ''}<small>PASS PERSONALE</small><h1>${esc(ev.nome)}</h1><p>${esc(fmtData(ev.data))}${ev.luogo ? '<br>' + esc(ev.luogo) : ''}</p></div>
+      <div class="cut"></div>
+      <div class="body">${d.checkin ? '<div class="ok">✓ Accredito già effettuato</div>' : ''}<div class="who">Ospite</div><div class="name">${esc(nm)}</div>
+      <div id="qr"></div><div class="hint">Mostra questo QR code all'ingresso.<br>Alza la luminosità dello schermo.</div>
+      <div class="acts"><button class="btn p" id="save">⬇ Salva pass</button>${cal ? `<a class="btn" href="${cal}" download="evento.ics">📅 Calendario</a>` : ''}${ev.luogo ? `<a class="btn" style="grid-column:1/-1" target="_blank" href="https://maps.google.com/?q=${encodeURIComponent(ev.luogo)}">📍 Come arrivare</a>` : ''}</div>
+      ${d.whiteLabel ? '' : `<div class="foot">Accrediti con ${esc(C.BRAND)}</div>`}</div>`;
+    const qc = qrCanvas(d.qr, 8); document.getElementById('qr').appendChild(qc);
+    document.getElementById('save').onclick = () => {
+      const W = 800, H = 1100, c = document.createElement('canvas'); c.width = W; c.height = H; const x = c.getContext('2d');
+      x.fillStyle = '#fff'; x.fillRect(0, 0, W, H); x.fillStyle = b.dark || '#13141B'; x.fillRect(0, 0, W, 300);
+      x.textAlign = 'center'; x.fillStyle = b.primary || '#FF5A36'; x.font = '800 24px Manrope'; x.fillText('PASS PERSONALE', W / 2, 110);
+      x.fillStyle = '#fff'; x.font = '800 52px "Bricolage Grotesque", sans-serif'; x.fillText(ev.nome.slice(0, 28), W / 2, 180);
+      x.font = '600 28px Manrope'; x.globalAlpha = .8; x.fillText(fmtData(ev.data), W / 2, 235); x.globalAlpha = 1;
+      x.fillStyle = '#18181d'; x.font = '800 54px "Bricolage Grotesque", sans-serif'; x.fillText(nm.slice(0, 26), W / 2, 400);
+      x.imageSmoothingEnabled = false; x.drawImage(qc, (W - 520) / 2, 450, 520, 520);
+      x.fillStyle = '#777'; x.font = '600 26px Manrope'; x.fillText('Mostra questo QR code all\'ingresso', W / 2, 1030);
+      const a = document.createElement('a'); a.download = 'pass-' + nm.replace(/\s+/g, '-').toLowerCase() + '.png'; a.href = c.toDataURL('image/png'); a.click();
+    };
+  } catch (e) {
+    box.innerHTML = `<div class="msg"><div style="font-size:44px">🎟️</div><h2 style="font-family:'Bricolage Grotesque';margin:10px 0">Pass non disponibile</h2><p style="color:#777">${esc(e.message)}. Contatta l'organizzatore dell'evento.</p></div>`;
+  }
+})();
+</script>
+</body>
+</html>
