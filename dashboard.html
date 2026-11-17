@@ -328,11 +328,32 @@ async function goHome() {
     S.lic = me.licenses; S.events = ev.events; renderHome();
   });
 }
+/* ---------- avviso scadenza pacchetto ---------- */
+const EXP_CSS = '.expb{display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:16px 20px;border-radius:16px;margin:0 0 20px;border:2px solid;font-size:15px;line-height:1.45}.expb.w{background:#FFF6E0;border-color:var(--amber);color:#6B4A00}.expb.x{background:#FDECEC;border-color:var(--red);color:#8A1C1C}.expb b.t{display:block;font-size:17px;margin-bottom:2px}.expb .btn{flex:none}';
+function expInfo(scad) {
+  if (!scad) return null;
+  const d = new Date(scad); if (isNaN(d)) return null;
+  const ms = d - Date.now(), days = Math.ceil(ms / 864e5);
+  const when = d.toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' }) + ' alle ' + d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+  return { d, ms, days, when };
+}
+function expBanner(scad, nome, evDate) {
+  const x = expInfo(scad); if (!x) return '';
+  if (!document.getElementById('expcss')) document.head.insertAdjacentHTML('beforeend', '<style id="expcss">' + EXP_CSS + '</style>');
+  const mail = 'mailto:' + C.CONTACTS.email + '?subject=' + encodeURIComponent('Proroga pacchetto ' + C.BRAND + (nome ? ' – ' + nome : ''));
+  const btn = `<a class="btn sm c" href="${mail}">Chiedi una proroga</a>`;
+  const ed = evDate ? new Date(String(evDate).slice(0, 10) + 'T23:59:59') : null, late = ed && !isNaN(ed) && ed > x.d;
+  if (x.ms <= 0) return `<div class="expb x"><div><b class="t">⛔ Pacchetto${nome ? ' ' + esc(nome) : ''} scaduto il ${esc(x.when)}</b>L'app di check-in all'ingresso è bloccata. Puoi ancora consultare ed esportare i dati e usare le email rimaste.</div>${btn}</div>`;
+  if (x.days <= 7) return `<div class="expb w"><div><b class="t">⚠️ Il pacchetto${nome ? ' ' + esc(nome) : ''} scade tra ${x.days} giorn${x.days === 1 ? 'o' : 'i'}</b>Scadenza: ${esc(x.when)}. Dopo questa data l'app di check-in all'ingresso si blocca.${late ? ' <b>La data del tuo evento è successiva alla scadenza.</b>' : ''}</div>${btn}</div>`;
+  if (late) return `<div class="expb w"><div><b class="t">⚠️ L'evento è dopo la scadenza del pacchetto</b>Il pacchetto scade il ${esc(x.when)}: il giorno dell'evento l'app di check-in sarebbe bloccata.</div>${btn}</div>`;
+  return '';
+}
 function renderHome() {
   const act = S.lic.filter(l => l.attiva), free = act.reduce((a, l) => a + Math.max(0, l.eventi - l.eventiUsati), 0);
   $('main').innerHTML = `
   <div class="hello rowb" style="margin-bottom:20px"><div><h1>Ciao ${esc((S.user.nome || '').split(' ')[0] || '')} 👋</h1><p class="muted">${free ? `Hai <b>${free >= 900 ? 'eventi illimitati' : free + ' evento' + (free > 1 ? 'i' : '') + ' disponibil' + (free > 1 ? 'i' : 'e')}</b> da creare.` : 'Attiva un codice di sblocco per creare il tuo primo evento.'}</p></div>
   <button class="btn c" onclick="mNewEvent()" ${free ? '' : 'disabled'}>＋ Nuovo evento</button></div>
+  ${S.lic.filter(l => l.attiva).map(l => expBanner(l.scadenza, l.nome)).join('')}
   <div class="grid g2">
     <div class="card"><h3 style="font-size:19px;margin-bottom:8px">I tuoi pacchetti</h3>
       ${S.lic.length ? S.lic.map(l => `<div class="lic"><div><b>${esc(l.nome)}</b> <span class="pill ${l.attiva ? 'ok' : 'no'}">${l.attiva ? 'Attivo' : 'Scaduto'}</span><div class="small muted">${l.eventi >= 900 ? 'Eventi illimitati' : l.eventiUsati + '/' + l.eventi + ' eventi usati'} · ${l.ospiti} ospiti/evento · ${l.dispositivi} dispositivi${l.emailMax ? ' · ' + l.emailUsate + '/' + l.emailMax + ' email usate' : ''}${l.whiteLabel ? ' · White label' : ''}</div></div><div class="small muted" style="text-align:right">Scade il<br><b>${new Date(l.scadenza).toLocaleDateString('it-IT')}</b></div></div>`).join('') : '<p class="muted small">Nessun pacchetto attivo.</p>'}
@@ -375,6 +396,7 @@ function renderEvent() {
   <button class="back" onclick="goHome()">← I miei eventi</button>
   <div class="evh"><div><h1 id="evTitle">${esc(e.nome)}</h1><div class="muted">📅 ${esc(fmtData(e.data) || 'Data da definire')} · 📍 ${esc(e.luogo || '—')}</div></div>
     <div class="codebox"><div><span>CODICE APP</span><b>${esc(e.codiceApp)}</b></div><div><span>PIN</span><b>${esc(e.pin)}</b></div><a class="btn sm c" href="${appLink()}" target="_blank">Apri app ↗</a></div></div>
+  ${expBanner(e.limiti && e.limiti.scadenza, '', e.data)}
   <div class="tabs">${[['ospiti', '👥 Ospiti'], ['campi', '🧩 Campi'], ['inviti', '✉️ Inviti & Badge'], ['app', '🎨 App & Brand'], ['live', '📈 Live']].map(t => `<button data-t="${t[0]}" class="${S.tab === t[0] ? 'on' : ''}">${t[1]}</button>`).join('')}</div>
   <div id="tab"></div>`;
   document.querySelectorAll('[data-t]').forEach(b => b.onclick = () => { S.tab = b.dataset.t; document.querySelectorAll('[data-t]').forEach(x => x.classList.toggle('on', x === b)); renderTab(); });
