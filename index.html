@@ -247,7 +247,7 @@ dialog::backdrop{background:rgba(19,20,27,.6);backdrop-filter:blur(3px)}
   <p class="sub">Nessun abbonamento nascosto, nessun costo per ospite. Paghi una volta e usi tutte le funzioni.</p>
   <div class="plans" id="plans"></div>
   <div class="ent" id="ent"></div>
-  <p class="allin"><b>Tutti i prezzi sono IVA esclusa (22%)</b> · Fattura elettronica inclusa · Ti serve di più? <a href="#ent"><b>Chiedi un preventivo su misura</b></a></p>
+  <p class="allin"><b>Prezzi senza IVA</b> · Fattura elettronica inclusa · Ti serve di più? <a href="#ent"><b>Chiedi un preventivo su misura</b></a></p>
 </div></section>
 
 <section id="faq" style="padding-top:20px"><div class="wrap">
@@ -326,7 +326,7 @@ function selTot(id) {
 }
 function totLine(id) {
   const t = selTot(id);
-  return t.ex.length ? `Totale €${fmtN(t.price)} + IVA · ${fmtN(t.guests)} ospiti · ${fmtN(t.emails)} email` : '';
+  return t.ex.length ? `Totale €${fmtN(t.price)} + IVA · ${fmtN(t.emails)} email in tutto` : '';
 }
 
 document.querySelectorAll('[data-brand]').forEach(e => e.textContent = C.BRAND);
@@ -339,7 +339,7 @@ function renderPlans() {
       ${p.highlight ? '<span class="badge">PIÙ SCELTO</span>' : ''}
       <h3>${esc(p.name)}</h3><div class="for">${esc(p.for)}</div>
       <div class="price">€${p.price}<small> ${esc(p.note)}</small></div>
-      <div class="vatn">+ IVA ${C.VAT}% · ${euro(p.price * (1 + C.VAT / 100))} totale</div>
+      <div class="vatn">prezzo senza IVA</div>
       <div class="lim">${p.limits.map(l => `<div>${esc(l)}</div>`).join('')}</div>
       ${ADDONS.length ? `<div class="addons" data-plan="${p.id}"><div class="adt">Extra</div>${ADDONS.map(a => `<label><input type="checkbox" data-ad="${a.id}" ${SEL[p.id].has(a.id) ? 'checked' : ''}> ${esc(a.label)} <b>€ ${fmtN(a.price)}</b></label>`).join('')}<div class="tot" id="tot_${p.id}">${totLine(p.id)}</div></div>` : ''}
       <ul>${p.features.map(f => `<li>${esc(f)}</li>`).join('')}</ul>
@@ -368,7 +368,7 @@ const FAQ = [
   ['Come carico la lista ospiti?', 'Da un file Excel o CSV: trascini il file, il sistema riconosce le colonne (nome, cognome, email, telefono…) e ti fa abbinare le altre. Puoi anche scaricare il nostro modello o aggiungere ospiti a mano.'],
   ['Posso aggiungere campi come intolleranze, tavolo o note?', 'Sì, i campi sono illimitati e li crei tu: testo, numero, sì/no o scelta da elenco. Puoi decidere quali mostrare all\'ingresso e quali evidenziare in rosso (es. allergie o VIP).'],
   ['Come ricevono il QR code gli ospiti?', 'In tre modi: email personalizzata con il pulsante “Mostra il tuo QR-code” (e il QR anche in allegato), link al pass digitale da mandare su WhatsApp, oppure badge e inviti in PDF da stampare o allegare.'],
-  ['Quante email posso inviare agli ospiti?', 'Ogni pacchetto include un numero massimo di email di invito: Start 500, Pro 2.000, Business 5.000. Al momento dell\'acquisto puoi aggiungere pacchetti da 250, 500 o 1.000 email extra, e anche 250 ospiti in più. I link WhatsApp e i badge PDF non consumano email.'],
+  ['Quante email posso inviare agli ospiti?', 'Ogni pacchetto include un numero massimo di email di invito: Start 500, Pro 2.000, Business 5.000. Al momento dell\'acquisto puoi aggiungere pacchetti da 250, 500 o 1.000 email extra. I link WhatsApp e i badge PDF non consumano email.'],
   ['Quanti dispositivi posso usare all\'ingresso?', 'Dipende dal pacchetto: 3 con Start, 5 con Pro, 10 con Business. Tutti i dispositivi sono sincronizzati: se un ospite entra dall\'ingresso A, l\'ingresso B lo vede come già entrato.'],
   ['E se all\'evento manca internet?', 'L\'app scarica la lista sul dispositivo e continua a funzionare anche offline. I check-in vengono salvati e sincronizzati appena torna la connessione. Consigliamo comunque un hotspot di riserva se usi più ingressi.'],
   ['Serve un lettore QR?', 'No, basta la fotocamera di smartphone o tablet. Se preferisci, su PC funziona anche con i lettori barcode USB o Bluetooth.'],
