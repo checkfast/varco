@@ -24,19 +24,19 @@ window.VARCO = {
   ],
 
   COMPANY: {
-    name: 'La Tua Azienda S.r.l.',
-    address: 'Via Esempio 1, 70100 Bari (BA)',
-    vat: 'IT00000000000',
-    cf: '00000000000',
-    rea: 'BA-000000',
+    name: 'WITH YOU SRL',
+    address: 'Via Privata del Gonfalone, 3 - 20123 Milano (MI)',
+    vat: 'IT10940150963',
+    cf: '10940150963',
+    rea: 'MI-2568062',
     capital: '€ 10.000,00 i.v.',
-    pec: 'azienda@pec.it',
-    sdi: 'XXXXXXX'
+    pec: 'withyousrl@pec.it',
+    sdi: 'KRRH6B9'
   },
   CONTACTS: {
-    email: 'info@tuodominio.it',
-    phone: '+39 000 000 0000',
-    whatsapp: '390000000000',    // solo cifre, con prefisso
+    email: 'info@withyouagency.it',
+    phone: '+39 02 5656 8571',
+    whatsapp: '390000000000',    // ← numero WhatsApp: solo cifre, con prefisso 39
     hours: 'Lun–Ven 9:00–19:00'
   },
   LEGAL: { privacy: '#', terms: '#', cookie: '#' }  // link alle tue pagine legali
