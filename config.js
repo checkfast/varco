@@ -3,7 +3,7 @@
    (usata da index.html, dashboard.html, checkin.html, invito.html)
    ===================================================================== */
 window.VARCO = {
-  API_URL: '',                 // ← URL dell'App Web Apps Script (finisce con /exec)
+  API_URL: 'https://script.google.com/macros/s/AKfycbxsMvG3pYUepSPpsr9HJj3CunLuDNKsOfissK3e57-okNYxZNk41lbUV0AECixP_3Iqyg/exec',
   BRAND: 'Varco',
   PAYOFF: 'Accrediti digitali per eventi',
   PAYPAL_CLIENT_ID: '',        // ← Client ID PayPal LIVE. Vuoto = solo bonifico
