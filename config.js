@@ -12,15 +12,15 @@ window.VARCO = {
 
   // Prezzi IVA esclusa. Tienili allineati con PLANS in Code.gs (il server comanda sui prezzi reali)
   PLANS: [
-    { id: 'START', name: 'Start', price: 89, note: 'una tantum', for: 'Il singolo evento',
-      limits: ['1 evento', 'Fino a 250 ospiti', '3 dispositivi in contemporanea', 'Attivo 60 giorni'],
-      features: ['Lista digitale + QR univoco per ospite', 'Import da Excel/CSV', 'Campi personalizzati (intolleranze, tavolo, note…)', 'Badge e inviti PDF stampabili', 'Inviti email e link WhatsApp', 'Logo e colori del tuo evento', 'Report live + export Excel'] },
-    { id: 'PRO', name: 'Pro', price: 189, note: 'una tantum', for: 'Agenzie, location, wedding', highlight: true,
+    { id: 'START', name: 'Start', price: 99, note: 'una tantum', for: 'Il singolo evento',
+      limits: ['1 evento', 'Fino a 250 ospiti', '3 dispositivi in contemporanea', 'Attivo 60 giorni', 'Email con la scritta “Accrediti gestiti con Varco”'],
+      features: ['Lista digitale + QR univoco per ospite', 'Import da Excel/CSV', 'Campi personalizzati (intolleranze, tavolo, note…)', 'Badge e inviti PDF stampabili', 'Inviti email personalizzati e link WhatsApp', 'Logo e colori del tuo evento', 'Report live + export Excel'] },
+    { id: 'PRO', name: 'Pro', price: 199, note: 'una tantum', for: 'Agenzie, location, wedding', highlight: true,
       limits: ['3 eventi', 'Fino a 1.000 ospiti per evento', '10 dispositivi in contemporanea', 'Attivo 6 mesi'],
-      features: ['Tutto di Start', 'Più ingressi con postazioni nominate', 'Ospiti aggiunti al volo dall\'app', 'Supporto prioritario WhatsApp'] },
-    { id: 'BUSINESS', name: 'Business', price: 490, note: 'all\'anno', for: 'Chi organizza eventi tutto l\'anno',
-      limits: ['Eventi illimitati', 'Fino a 5.000 ospiti per evento', 'Fino a 50 dispositivi', 'Attivo 12 mesi'],
-      features: ['Tutto di Pro', 'White label totale: nessun riferimento a Varco', 'Onboarding dedicato (call 30 min)', 'Assistenza nel giorno dell\'evento'] }
+      features: ['Tutto di Start', 'Email agli ospiti senza la scritta “Accrediti gestiti con Varco”', 'Più ingressi con postazioni nominate', 'Ospiti aggiunti al volo dall\'app', 'Supporto prioritario WhatsApp'] },
+    { id: 'BUSINESS', name: 'Business', price: 890, note: 'una tantum', for: 'Chi organizza più eventi nell\'anno',
+      limits: ['10 eventi', 'Fino a 5.000 ospiti per evento', 'Fino a 50 dispositivi', 'Attivo 12 mesi'],
+      features: ['Tutto di Pro', 'White label totale: nessun riferimento a Varco su email, app e pass', 'Onboarding dedicato (call 30 min)', 'Assistenza nel giorno dell\'evento'] }
   ],
 
   COMPANY: {
