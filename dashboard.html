@@ -673,6 +673,7 @@ function tInviti() {
   <div class="card">
     <h3 style="font-size:20px;margin-bottom:4px">✉️ Invito email con QR</h3>
     <p class="small muted" style="margin-bottom:14px">Ogni ospite riceve la sua email con QR personale e il link al pass digitale. Le risposte arrivano alla tua email.</p>
+    <div class="f"><label class="l">Le risposte degli ospiti arrivano a</label><input class="inp" id="iRep" type="email" value="${esc(inv.replyTo || S.user.email || '')}" placeholder="es. eventi@tuaazienda.it"><div class="small muted" style="margin:4px 2px 0">Quando un ospite preme “Rispondi”, la risposta va a questo indirizzo.</div></div>
     <div class="f"><label class="l">Oggetto</label><input class="inp" id="iSub" data-tpl value="${esc(inv.subject)}"></div>
     <div class="f"><label class="l">Messaggio</label><textarea class="inp" id="iBody" data-tpl rows="7">${esc(inv.body)}</textarea></div>
     <div class="small muted">Tocca per inserire un dato personalizzato nel campo selezionato:</div>
@@ -737,11 +738,12 @@ function tInviti() {
   document.querySelectorAll('[data-tpl]').forEach(el => el.onfocus = e => lastTa = e.target);
   document.querySelectorAll('[data-ph]').forEach(x => x.onclick = () => { const t = lastTa, s = t.selectionStart ?? t.value.length; t.value = t.value.slice(0, s) + x.dataset.ph + t.value.slice(t.selectionEnd ?? s); t.focus(); });
   const sync = () => {
-    inv.subject = $('iSub').value; inv.body = $('iBody').value; inv.signature = $('iSig').value; inv.footer = $('iFoot').value;
+    inv.subject = $('iSub').value; inv.body = $('iBody').value; inv.signature = $('iSig').value; inv.footer = $('iFoot').value; inv.replyTo = $('iRep').value.trim();
     inv.image.pos = $('iImgPos').value; inv.image.link = $('iImgLink').value.trim();
     inv.link.label = $('iLkL').value; inv.link.url = $('iLkU').value.trim(); inv.link.pos = $('iLkP').value;
   };
   const check = () => {
+    if (inv.replyTo && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(inv.replyTo)) throw new Error('Indirizzo per le risposte non valido');
     for (const [v, n] of [[inv.image.link, 'Link dell\'immagine'], [inv.link.url, 'Indirizzo del pulsante']]) if (v && !okUrl(v)) throw new Error(n + ': deve iniziare con https://');
     if (inv.link.url && !inv.link.label.trim()) inv.link.label = 'Scopri di più';
   };
@@ -834,7 +836,7 @@ async function previewEmail() {
   const g = S.guests.find(x => x.email) || S.guests[0] || { id: 'x', token: 'ANTEPRIMA', nome: 'Mario', cognome: 'Rossi', dati: {} };
   const img = await getInvImg();
   openModal(mHead('Anteprima email') + `<div class="mb" style="padding:0">
-    <div style="padding:12px 22px;border-bottom:1px solid var(--line);font-size:14px"><span class="muted">Oggetto:</span> <b>${esc(fillTpl(invCfg().subject, g))}</b><br><span class="muted">A:</span> ${esc(fullName(g))} ${g.email ? '&lt;' + esc(g.email) + '&gt;' : ''}</div>
+    <div style="padding:12px 22px;border-bottom:1px solid var(--line);font-size:14px"><span class="muted">Oggetto:</span> <b>${esc(fillTpl(invCfg().subject, g))}</b><br><span class="muted">Rispondi a:</span> ${esc(invCfg().replyTo || S.user.email || '')}<br><span class="muted">A:</span> ${esc(fullName(g))} ${g.email ? '&lt;' + esc(g.email) + '&gt;' : ''}</div>
     ${emailHtml(g, img)}</div><div class="mf"><button class="btn i" onclick="closeModal()">Chiudi</button></div>`, true);
 }
 function fillTpl(t, g) {
