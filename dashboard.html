@@ -377,16 +377,55 @@ function mNewEvent() {
 }
 
 /* ================= EVENTO ================= */
+/* ---------- esito consegna email (solo Brevo) ---------- */
+function esOf(g) { const x = S.es && S.es[g.id]; return x && g.email && String(x.email).toLowerCase() === String(g.email).toLowerCase() ? x : null; }
+function esBad(g) { const x = esOf(g); return !!x && (x.s === 'errore' || x.s === 'spam'); }
+function esPill(g) {
+  const x = esOf(g); if (!x) return '';
+  if (x.s === 'errore') return `<span class="pill no" title="${esc(x.m)}">⚠ Non consegnata</span>`;
+  if (x.s === 'spam') return `<span class="pill no" title="${esc(x.m)}">⚠ Segnalata spam</span>`;
+  if (x.s === 'aperta') return '<span class="pill ok" title="Email consegnata e aperta">✓✓ Aperta</span>';
+  if (x.s === 'consegnata') return '<span class="pill ok" title="Email consegnata nella casella dell\'ospite">✓ Consegnata</span>';
+  return '';
+}
+function loadEmailStatus(force) {
+  if (!S.ev || S.esOn === false && !force) return;
+  const id = S.ev.id;
+  call('emailStatus', { eventId: id, force: !!force }, true).then(r => {
+    if (!S.ev || S.ev.id !== id) return;
+    S.esOn = r.enabled; S.es = r.list || {}; S.esAt = r.at || ''; S.esWarn = r.warn || '';
+    if (S.tab === 'ospiti' && $('gbody')) rows();
+    if (S.tab === 'inviti' && $('esBox')) renderEsBox();
+    if (force) toast(S.esWarn || 'Stato email aggiornato', S.esWarn ? 'err' : 'ok');
+  }).catch(() => {});
+}
+function renderEsBox() {
+  const box = $('esBox'); if (!box) return;
+  if (!S.esOn) { box.innerHTML = ''; return; }
+  const gs = S.guests.filter(g => esOf(g)), bad = gs.filter(esBad);
+  const n = s => gs.filter(g => esOf(g).s === s).length;
+  box.innerHTML = (bad.length ? `<div style="background:#FDECEC;border:2px solid var(--red);border-radius:14px;padding:14px 16px;margin-bottom:12px;color:#8A1C1C">
+      <b style="font-size:16px">⚠ ${bad.length} email non consegnat${bad.length === 1 ? 'a' : 'e'}</b>
+      <ul style="margin:8px 0 10px 18px;padding:0;font-size:13.5px">${bad.slice(0, 5).map(g => `<li><b>${esc(fullName(g))}</b> – ${esc(g.email)}<br><span style="opacity:.85">${esc(esOf(g).m)}</span></li>`).join('')}${bad.length > 5 ? `<li>…e altri ${bad.length - 5}</li>` : ''}</ul>
+      <div class="small" style="margin-bottom:10px">Correggi l'indirizzo nella scheda ospite e reinvia, oppure manda il pass su WhatsApp.</div>
+      <button class="btn sm r" id="esShow">Mostra nella lista ospiti</button></div>` : '') +
+    `<p class="small muted" style="margin:0 0 12px">📬 Consegne: <b>${n('consegnata') + n('aperta')}</b> consegnate${n('aperta') ? ' (di cui ' + n('aperta') + ' aperte)' : ''}${bad.length ? ' · <b style="color:#B42318">' + bad.length + '</b> con errore' : ''}${S.esAt ? ' · aggiornato alle ' + esc(S.esAt) : ''} · <a href="#" id="esRef"><b>Aggiorna</b></a></p>`;
+  if ($('esShow')) $('esShow').onclick = () => { S.filter = 'mailerr'; S.tab = 'ospiti'; document.querySelectorAll('[data-t]').forEach(x => x.classList.toggle('on', x.dataset.t === 'ospiti')); renderTab(); };
+  $('esRef').onclick = e => { e.preventDefault(); loadEmailStatus(true); };
+}
 async function openEvent(id) {
   await run(async () => {
     const [e, g] = await Promise.all([call('getEvent', { id }), call('guests', { eventId: id }, true)]);
     S.ev = e.event; S.guests = g.guests; S.quota = g.quota; S.sel.clear(); S.invImg = null; S.q = ''; S.filter = 'all';
     S.ev.config = Object.assign({ fields: [], brand: {}, invite: {}, badge: {}, app: {} }, S.ev.config);
     history.replaceState(null, '', '#ev=' + id);
+    S.es = {}; S.esOn = undefined; S.esAt = '';
     renderEvent();
   });
+  loadEmailStatus();
+  clearInterval(S.esT); S.esT = setInterval(() => { if (S.ev && S.ev.id === id && document.visibilityState === 'visible') loadEmailStatus(); }, 300000);
 }
-async function reloadGuests() { const g = await call('guests', { eventId: S.ev.id }, true); S.guests = g.guests; S.quota = g.quota; }
+async function reloadGuests() { const g = await call('guests', { eventId: S.ev.id }, true); S.guests = g.guests; S.quota = g.quota; loadEmailStatus(); }
 async function saveCfg(extra) {
   const r = await call('updateEvent', Object.assign({ id: S.ev.id, config: S.ev.config }, extra || {}));
   Object.assign(S.ev, r.event); S.ev.config = Object.assign({ fields: [], brand: {}, invite: {}, badge: {}, app: {} }, r.event.config);
@@ -400,7 +439,8 @@ const HELP = {
     <li><b>Cerca e filtra</b>: la barra di ricerca trova nome, email, telefono o qualsiasi campo. Il menu accanto mostra Entrati, Non entrati, Non invitati o Senza email.</li>
     <li><b>Ordina</b>: clicca sul titolo di una colonna o sulle frecce ▲▼.</li>
     <li><b>Seleziona</b> più ospiti con le caselle per inviare loro l'invito, scaricarne i badge PDF o eliminarli in un colpo.</li>
-    <li><b>⬇ Esporta</b>: scarica la lista aggiornata in Excel, con lo stato di ingresso.</li></ol>
+    <li><b>⬇ Esporta</b>: scarica la lista aggiornata in Excel, con lo stato di ingresso.</li>
+    <li><b>Email non consegnate</b>: se un invito non arriva (indirizzo sbagliato, casella piena…) l'ospite viene segnato con <b>⚠ Non consegnata</b>. Usa il filtro "Email non consegnate", correggi l'indirizzo e reinvia.</li></ol>
     <p>Ogni ospite ha il suo QR personale, creato in automatico.</p>`,
   campi: `<h4>🧩 Campi personalizzati</h4>
     <p>Nome, cognome, email e telefono ci sono sempre. Qui aggiungi le informazioni in più che ti servono, ad esempio tavolo, azienda, intolleranze, VIP o accompagnatori.</p><ol>
@@ -417,6 +457,7 @@ const HELP = {
     <li>Controlla con <b>👁 Anteprima email</b> e premi <b>Salva modello</b>.</li>
     <li>Invia: <b>a chi non l'ha ricevuto</b>, <b>a determinati ospiti</b> (li scegli tu) oppure <b>reinvia a tutti</b>.</li></ol>
     <p>L'ospite riceve il pulsante <b>MOSTRA IL TUO QR-CODE</b> e il QR in allegato. Ogni email inviata scala dal totale del pacchetto; WhatsApp e PDF non consumano email.</p>
+    <p>Dopo l'invio vedi lo stato di ogni email (<b>Consegnata</b>, <b>Aperta</b> o <b>⚠ Non consegnata</b> con il motivo). Lo stato si aggiorna da solo ogni 5 minuti, oppure con <b>Aggiorna</b>.</p>
     <h4 style="margin-top:12px">🏷️ Badge e inviti stampabili</h4>
     <p>Scegli il formato e cosa mostrare sotto il nome, poi scarica il PDF di tutti gli ospiti o solo di chi non è ancora entrato.</p>`,
   app: `<h4>📱 App di accredito per lo staff</h4><ol>
@@ -500,7 +541,7 @@ function tOspiti() {
   <div class="tool">
     <input class="inp" id="gq" placeholder="🔎 Cerca nome, email, telefono, campo…" value="${esc(S.q)}">
     <select class="inp" id="gf" style="flex:0 0 auto;width:auto">
-      <option value="all">Tutti</option><option value="in">Entrati</option><option value="out">Non entrati</option><option value="noinv">Non invitati</option><option value="nomail">Senza email</option>
+      <option value="all">Tutti</option><option value="in">Entrati</option><option value="out">Non entrati</option><option value="noinv">Non invitati</option><option value="nomail">Senza email</option><option value="mailerr">Email non consegnate</option>
     </select>
     <select class="inp msort" id="gs" style="flex:0 0 auto;width:auto" aria-label="Ordina per"></select>
     <button class="btn c" onclick="mGuest()">＋ Ospite</button>
@@ -531,6 +572,7 @@ function filtered() {
     if (S.filter === 'out' && g.checkin) return false;
     if (S.filter === 'noinv' && g.invito) return false;
     if (S.filter === 'nomail' && g.email) return false;
+    if (S.filter === 'mailerr' && !esBad(g)) return false;
     if (!q) return true;
     return norm([g.nome, g.cognome, g.cognome, g.nome, g.email, g.telefono].concat(Object.values(g.dati || {})).join(' ')).includes(q);
   }));
@@ -538,7 +580,7 @@ function filtered() {
 function rows() {
   const fs = shownFields(), list = filtered(), tot = S.guests.length, inn = S.guests.filter(g => g.checkin).length;
   const alerts = S.ev.config.fields.filter(f => f.alert).map(f => f.k);
-  $('gstats').innerHTML = `<div class="stat"><b>${tot}</b>ospiti / ${S.ev.limiti.ospiti}</div><div class="stat"><b>${inn}</b>entrati</div><div class="stat"><b>${S.guests.filter(g => g.email).length}</b>con email</div><div class="stat"><b>${S.guests.filter(g => g.invito).length}</b>invitati</div>`;
+  $('gstats').innerHTML = `<div class="stat"><b>${tot}</b>ospiti / ${S.ev.limiti.ospiti}</div><div class="stat"><b>${inn}</b>entrati</div><div class="stat"><b>${S.guests.filter(g => g.email).length}</b>con email</div><div class="stat"><b>${S.guests.filter(g => g.invito).length}</b>invitati</div>${(n => n ? `<div class="stat" style="border-color:var(--red);background:#FDECEC;color:#8A1C1C;cursor:pointer" onclick="S.filter='mailerr';$('gf').value='mailerr';rows()" title="Mostra gli ospiti con email non consegnata"><b>${n}</b>email non consegnat${n === 1 ? 'a' : 'e'}</div>` : '')(S.guests.filter(esBad).length)}`;
   $('gbulk').innerHTML = S.sel.size ? `<div class="bulk"><b>${S.sel.size} selezionati</b><button class="btn sm" onclick="bulkInvite()">✉️ Invia invito</button><button class="btn sm" onclick="badgePdf(selGuests(),'badge-selezionati.pdf')">🏷️ Badge PDF</button><button class="btn sm" onclick="bulkDelete()">🗑 Elimina</button><button class="btn sm" onclick="S.sel.clear();rows()">✕ Deseleziona</button></div>` : '';
   const show = list.slice(0, 300);
   $('gbody').innerHTML = show.map(g => `<tr data-id="${g.id}">
@@ -546,7 +588,7 @@ function rows() {
     <td><div class="nm">${esc(fullName(g)) || '—'}</div>${alerts.filter(k => g.dati[k]).map(k => `<div class="small alertc">⚠ ${esc(g.dati[k] === 'Sì' ? (S.ev.config.fields.find(f => f.k === k) || {}).l : g.dati[k])}</div>`).join('')}</td>
     <td class="hm small">${esc(g.email)}${g.email && g.telefono ? '<br>' : ''}${esc(g.telefono)}</td>
     ${fs.map(f => `<td class="hm small">${esc(g.dati[f.k] || '')}</td>`).join('')}
-    <td>${g.invito ? '<span class="pill ok">✓ Inviato</span>' : '<span class="pill">—</span>'}</td>
+    <td>${esPill(g) || (g.invito ? '<span class="pill ok">✓ Inviato</span>' : '<span class="pill">—</span>')}</td>
     <td>${g.checkin ? `<span class="pill ok">Entrato ${fmtOra(g.checkinAt)}</span>` : '<span class="pill w">Non entrato</span>'}</td></tr>`).join('') || `<tr><td colspan="9" style="text-align:center;padding:40px" class="muted">${S.guests.length ? 'Nessun risultato' : 'Nessun ospite: importa un Excel o aggiungine uno.'}</td></tr>`;
   $('gmore').textContent = list.length > 300 ? `Mostrati 300 di ${list.length}: affina la ricerca` : '';
   $('gbody').querySelectorAll('tr[data-id]').forEach(tr => tr.onclick = e => {
@@ -588,7 +630,7 @@ function mGuest(g) {
         <button class="btn sm" id="gLink">🔗 Copia link pass</button>
         <a class="btn sm" id="gWa" target="_blank">💬 WhatsApp</a>
         <button class="btn sm" id="gMail">✉️ Invia email</button>
-      </div><p class="small muted" style="margin-top:8px;text-align:center">${g.invito ? 'Invito: ' + esc(g.invito) : 'Invito non ancora inviato'}</p></div>`}
+      </div><p class="small muted" style="margin-top:8px;text-align:center">${g.invito ? 'Invito: ' + esc(g.invito) : 'Invito non ancora inviato'}</p>${esBad(g) ? `<p class="small" style="margin-top:6px;text-align:center;color:#B42318"><b>⚠ Email non consegnata</b><br>${esc(esOf(g).m)}<br>Correggi l'indirizzo, salva e premi “Invia email”.</p>` : (esOf(g) ? `<p class="small" style="margin-top:6px;text-align:center">${esPill(g)}</p>` : '')}</div>`}
   </div></div>
   <div class="mf">${isNew ? '' : '<button class="btn r" id="gDel" style="margin-right:auto">Elimina</button>'}<button class="btn g" onclick="closeModal()">Annulla</button><button class="btn c" id="gSave">Salva</button></div>`, !isNew);
   if (!isNew) {
@@ -783,6 +825,7 @@ function tInviti() {
 
     <div class="rowb" style="margin-top:14px"><button class="btn g sm" id="iPrev">👁 Anteprima email</button><button class="btn i sm" id="iSave">Salva modello</button></div>
     <hr style="border:0;border-top:1px solid var(--line);margin:18px 0">
+    <div id="esBox"></div>
     <div class="grid" style="gap:8px">
       <button class="btn c" id="iSendNew" ${notInv.length ? '' : 'disabled'}>Invia a chi non l'ha ricevuto (${notInv.length})</button>
       <button class="btn i" id="iSendPick" ${withMail.length ? '' : 'disabled'}>Invia a determinati ospiti…</button>
@@ -831,6 +874,7 @@ function tInviti() {
   });
   $('iPrev').onclick = () => run(async () => { sync(); check(); await previewEmail(); });
   $('iSave').onclick = () => run(async () => { await save(); toast('Modello salvato', 'ok'); });
+  renderEsBox();
   $('iSendNew').onclick = () => run(async () => { await save(); sendInvites(S.guests.filter(g => g.email && !g.invito)); });
   $('iSendPick').onclick = () => run(async () => { await save(); mPickSend(); });
   $('iSendAll').onclick = () => { if (!confirm('Inviare l\'email a tutti i ' + withMail.length + ' ospiti con email, anche a chi l\'ha già ricevuta?')) return; run(async () => { await save(); sendInvites(withMail); }); };
