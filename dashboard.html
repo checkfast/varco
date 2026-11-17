@@ -391,6 +391,56 @@ async function saveCfg(extra) {
   const r = await call('updateEvent', Object.assign({ id: S.ev.id, config: S.ev.config }, extra || {}));
   Object.assign(S.ev, r.event); S.ev.config = Object.assign({ fields: [], brand: {}, invite: {}, badge: {}, app: {} }, r.event.config);
 }
+/* ---------- mini guida per ogni menu ---------- */
+const HELP_CSS = '.hlp{margin:-8px 0 20px}.hlp-t{background:none;border:0;padding:6px 0;font-weight:700;font-size:14px;color:var(--coral-d);cursor:pointer;display:inline-flex;align-items:center;gap:6px}.hlp-b{background:#FFF8F3;border:1.5px solid #FFD9CC;border-radius:16px;padding:18px 22px;margin-top:6px;font-size:14.5px;line-height:1.6}.hlp-b h4{font-size:15px;margin:0 0 6px}.hlp-b ol,.hlp-b ul{margin:0 0 10px 20px;padding:0}.hlp-b li{margin:3px 0}.hlp-b p{margin:0 0 8px}.hlp-b p:last-child,.hlp-b ul:last-child,.hlp-b ol:last-child{margin-bottom:0}';
+const HELP = {
+  ospiti: `<h4>👥 Gestire la lista ospiti</h4><ol>
+    <li><b>Importa Excel</b>: carica il tuo file .xlsx o .csv. Il sistema riconosce nome, cognome, email e telefono e ti chiede come abbinare le altre colonne. Se non hai un file pronto, scarica il <b>Modello</b>.</li>
+    <li><b>＋ Ospite</b>: aggiungi o modifica un ospite a mano. Clicca su una riga per aprirne la scheda (da lì trovi anche il link WhatsApp del pass).</li>
+    <li><b>Cerca e filtra</b>: la barra di ricerca trova nome, email, telefono o qualsiasi campo. Il menu accanto mostra Entrati, Non entrati, Non invitati o Senza email.</li>
+    <li><b>Ordina</b>: clicca sul titolo di una colonna o sulle frecce ▲▼.</li>
+    <li><b>Seleziona</b> più ospiti con le caselle per inviare loro l'invito, scaricarne i badge PDF o eliminarli in un colpo.</li>
+    <li><b>⬇ Esporta</b>: scarica la lista aggiornata in Excel, con lo stato di ingresso.</li></ol>
+    <p>Ogni ospite ha il suo QR personale, creato in automatico.</p>`,
+  campi: `<h4>🧩 Campi personalizzati</h4>
+    <p>Nome, cognome, email e telefono ci sono sempre. Qui aggiungi le informazioni in più che ti servono, ad esempio tavolo, azienda, intolleranze, VIP o accompagnatori.</p><ol>
+    <li><b>＋ Aggiungi campo</b> e dagli un nome.</li>
+    <li>Scegli il <b>tipo</b>: Testo, Numero, Sì/No oppure Scelta da elenco (scrivi le opzioni separate da virgola).</li>
+    <li><b>App</b>: il campo viene mostrato allo staff all'ingresso dopo la scansione.</li>
+    <li><b>Evidenzia</b>: il campo appare in rosso all'ingresso (utile per allergie, VIP, note importanti).</li>
+    <li>Riordina con ↑ ↓, elimina con 🗑, poi premi <b>Salva campi</b>.</li></ol>
+    <p>I campi compaiono anche nella lista ospiti, nell'import Excel e si possono inserire nel testo degli inviti.</p>`,
+  inviti: `<h4>✉️ Inviti email</h4><ol>
+    <li>Scrivi <b>oggetto</b> e <b>messaggio</b>. Clicca sui segnaposto (es. {nome}, {evento}) per personalizzare il testo per ogni ospite.</li>
+    <li>Se vuoi, aggiungi un'<b>immagine</b>, un <b>pulsante con link</b>, una <b>firma</b> e un <b>footer</b>, e scegli dove posizionarli.</li>
+    <li>In <b>"Le risposte degli ospiti arrivano a"</b> metti l'email dove vuoi ricevere le risposte.</li>
+    <li>Controlla con <b>👁 Anteprima email</b> e premi <b>Salva modello</b>.</li>
+    <li>Invia: <b>a chi non l'ha ricevuto</b>, <b>a determinati ospiti</b> (li scegli tu) oppure <b>reinvia a tutti</b>.</li></ol>
+    <p>L'ospite riceve il pulsante <b>MOSTRA IL TUO QR-CODE</b> e il QR in allegato. Ogni email inviata scala dal totale del pacchetto; WhatsApp e PDF non consumano email.</p>
+    <h4 style="margin-top:12px">🏷️ Badge e inviti stampabili</h4>
+    <p>Scegli il formato e cosa mostrare sotto il nome, poi scarica il PDF di tutti gli ospiti o solo di chi non è ancora entrato.</p>`,
+  app: `<h4>📱 App di accredito per lo staff</h4><ol>
+    <li>Premi <b>🔗 Copia link app</b> (o <b>📋 Copia istruzioni staff</b>) e mandalo alle persone all'ingresso.</li>
+    <li>Sul loro telefono o tablet aprono il link, inseriscono il <b>PIN</b> e un nome postazione (es. "Ingresso A").</li>
+    <li>Inquadrano il QR dell'ospite con la fotocamera: l'app mostra nome, campi e registra l'ingresso. Tutti i dispositivi sono sincronizzati.</li></ol>
+    <p><b>Comportamento all'ingresso</b>: scegli se registrare l'ingresso subito alla scansione, se lo staff può aggiungere ospiti non in lista o annullare un ingresso, e se usare suono e vibrazione.</p>
+    <h4 style="margin-top:12px">🎨 Evento e brand</h4>
+    <p>Modifica nome, data e luogo, carica il <b>logo</b> e scegli i <b>colori</b>: vengono usati in app, inviti, pass e badge. Premi <b>Salva modifiche</b>.</p>
+    <p><b>Attenzione:</b> "Azzera tutti i check-in" ed "Elimina evento" non si possono annullare.</p>`,
+  live: `<h4>📈 Andamento in tempo reale</h4><ul>
+    <li>I numeri si aggiornano da soli ogni 10 secondi: <b>Entrati</b>, <b>Non entrati</b>, <b>% di presenza</b> e <b>dispositivi attivi</b>.</li>
+    <li><b>Ingressi per orario</b> mostra i momenti di maggiore affluenza.</li>
+    <li><b>Ultimi movimenti</b> elenca ingressi, annullamenti e ospiti aggiunti, con orario e postazione.</li>
+    <li><b>⬇ Esporta report ingressi</b>: un Excel con riepilogo, entrati, non entrati, ingressi per orario e tutti i movimenti. Utile da mandare al cliente a fine evento.</li></ul>`
+};
+function helpOpen() { try { return localStorage.getItem('vrc_help') === '1'; } catch (e) { return false; } }
+function renderHelp() {
+  const box = $('help'); if (!box) return;
+  if (!$('hlpcss')) document.head.insertAdjacentHTML('beforeend', '<style id="hlpcss">' + HELP_CSS + '</style>');
+  const open = helpOpen();
+  box.innerHTML = `<button class="hlp-t" id="hlpT">${open ? '▾ Nascondi istruzioni' : '▸ Mostra istruzioni'}</button>${open ? `<div class="hlp-b">${HELP[S.tab] || ''}</div>` : ''}`;
+  $('hlpT').onclick = () => { try { localStorage.setItem('vrc_help', open ? '0' : '1'); } catch (e) {} renderHelp(); };
+}
 function renderEvent() {
   const e = S.ev;
   $('main').innerHTML = `
@@ -399,12 +449,14 @@ function renderEvent() {
     <div class="codebox"><div><span>CODICE APP</span><b>${esc(e.codiceApp)}</b></div><div><span>PIN</span><b>${esc(e.pin)}</b></div><a class="btn sm c" href="${appLink()}" target="_blank">Apri app ↗</a></div></div>
   ${expBanner(e.limiti && e.limiti.scadenza, '', e.data)}
   <div class="tabs">${[['ospiti', '👥 Ospiti'], ['campi', '🧩 Campi'], ['inviti', '✉️ Inviti & Badge'], ['app', '🎨 App & Brand'], ['live', '📈 Live']].map(t => `<button data-t="${t[0]}" class="${S.tab === t[0] ? 'on' : ''}">${t[1]}</button>`).join('')}</div>
+  <div class="hlp" id="help"></div>
   <div id="tab"></div>`;
   document.querySelectorAll('[data-t]').forEach(b => b.onclick = () => { S.tab = b.dataset.t; document.querySelectorAll('[data-t]').forEach(x => x.classList.toggle('on', x === b)); renderTab(); });
   renderTab();
 }
 function renderTab() {
   clearInterval(S.liveT);
+  renderHelp();
   ({ ospiti: tOspiti, campi: tCampi, inviti: tInviti, app: tApp, live: tLive })[S.tab]();
 }
 
