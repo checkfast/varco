@@ -12,16 +12,32 @@ window.VARCO = {
 
   // Prezzi IVA esclusa. Tienili allineati con PLANS in Code.gs (il server comanda sui prezzi reali)
   PLANS: [
-    { id: 'START', name: 'Start', price: 99, note: 'una tantum', for: 'Il singolo evento',
-      limits: ['1 evento', 'Fino a 250 ospiti', '3 dispositivi in contemporanea', 'Attivo 60 giorni', 'Email con la scritta “Accrediti gestiti con Varco”'],
+    { id: 'START', name: 'Start', price: 89, note: 'una tantum', for: 'Il singolo evento',
+      limits: ['1 evento', 'Fino a 250 ospiti', '3 dispositivi in contemporanea', 'Attivo 60 giorni', 'Max 500 email', 'Email con la scritta “Accrediti gestiti con Varco”'],
       features: ['Lista digitale + QR univoco per ospite', 'Import da Excel/CSV', 'Campi personalizzati (intolleranze, tavolo, note…)', 'Badge e inviti PDF stampabili', 'Inviti email personalizzati e link WhatsApp', 'Logo e colori del tuo evento', 'Report live + export Excel'] },
     { id: 'PRO', name: 'Pro', price: 199, note: 'una tantum', for: 'Agenzie, location, wedding', highlight: true,
-      limits: ['3 eventi', 'Fino a 1.000 ospiti per evento', '10 dispositivi in contemporanea', 'Attivo 6 mesi'],
+      limits: ['3 eventi', 'Fino a 1.000 ospiti per evento', '10 dispositivi in contemporanea', 'Attivo 6 mesi', 'Max 1.500 email'],
       features: ['Tutto di Start', 'Email agli ospiti senza la scritta “Accrediti gestiti con Varco”', 'Più ingressi con postazioni nominate', 'Ospiti aggiunti al volo dall\'app', 'Supporto prioritario WhatsApp'] },
     { id: 'BUSINESS', name: 'Business', price: 890, note: 'una tantum', for: 'Chi organizza più eventi nell\'anno',
-      limits: ['10 eventi', 'Fino a 5.000 ospiti per evento', 'Fino a 50 dispositivi', 'Attivo 12 mesi'],
+      limits: ['10 eventi', 'Fino a 5.000 ospiti per evento', 'Fino a 50 dispositivi', 'Attivo 12 mesi', 'Max 5.000 email'],
       features: ['Tutto di Pro', 'White label totale: nessun riferimento a Varco su email, app e pass', 'Onboarding dedicato (call 30 min)', 'Assistenza nel giorno dell\'evento'] }
   ],
+
+  // Pacchetti email extra (prezzi IVA esclusa). Tienili allineati con ADDONS in Code.gs
+  ADDONS: [
+    { id: 'E250', label: 'Aggiungi 250 email', emails: 250, price: 49 },
+    { id: 'E500', label: 'Aggiungi 500 email', emails: 500, price: 79 },
+    { id: 'E1000', label: 'Aggiungi 1000 email', emails: 1000, price: 149 }
+  ],
+
+  // Quarto pacchetto: servizio gestito, solo su preventivo
+  ENTERPRISE: {
+    name: 'Enterprise',
+    for: 'Grandi eventi, congressi, fiere, tour',
+    text: 'Pensiamo a tutto noi: tu ci mandi la lista, noi ci occupiamo dell\'accredito dall\'inizio alla fine.',
+    features: ['Configurazione completa dell\'evento e importazione della lista', 'Inviti personalizzati e gestione delle risposte', 'Email illimitate e white label totale', 'Hostess e staff di accredito in loco', 'Dispositivi, lettori QR e stampa badge sul posto', 'Assistenza dedicata e report finale'],
+    email: 'info@withyouagency.it'
+  },
 
   COMPANY: {
     name: 'WITH YOU SRL',
