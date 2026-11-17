@@ -124,6 +124,15 @@ table.gt{width:100%;border-collapse:separate;border-spacing:0;background:#fff;bo
 .chips{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 12px}
 .chips button{border:1px dashed #C9C1B4;background:#fff;border-radius:999px;padding:4px 10px;font-size:12px;font-weight:700;cursor:pointer}
 .prev{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px;white-space:pre-wrap;font-size:14px}
+.esec{border-top:1px solid var(--line);padding-top:14px;margin-top:14px}
+.esh{font-weight:800;margin-bottom:10px}
+.imgprev{width:200px;height:100px;border:2px dashed var(--line);border-radius:12px;background:#fff;display:grid;place-items:center;overflow:hidden}
+.imgprev img{max-width:100%;max-height:100%}
+.picklist{max-height:52vh;overflow:auto;border:1px solid var(--line);border-radius:14px;background:#fff}
+.pk{display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid #F0EBE3;cursor:pointer}
+.pk:last-child{border-bottom:0}.pk:hover{background:#FFFBF7}
+.pk input{width:18px;height:18px;accent-color:var(--coral);flex:none}
+.pkn{flex:1;min-width:0;display:flex;flex-direction:column}.pkn span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .prog{height:8px;background:#ECE7DF;border-radius:9px;overflow:hidden;margin:10px 0}.prog i{display:block;height:100%;background:var(--mint);width:0;transition:width .3s}
 .badgeprev{width:255px;height:165px;border:1px solid var(--line);border-radius:6px;background:#fff;position:relative;overflow:hidden;margin:12px 0}
 .badgeprev .bd{height:30px;color:#fff;font-weight:800;font-size:12px;padding:8px 12px}
@@ -228,6 +237,7 @@ table.gt{width:100%;border-collapse:separate;border-spacing:0;background:#fff;bo
 <div id="busy" hidden><div class="spin"></div></div>
 <input type="file" id="fileX" accept=".xlsx,.xls,.csv" hidden>
 <input type="file" id="fileL" accept="image/png,image/jpeg,image/webp,image/svg+xml" hidden>
+<input type="file" id="fileI" accept="image/png,image/jpeg,image/webp" hidden>
 
 <script>
 /* ================= STATO & UTILITY ================= */
@@ -348,7 +358,7 @@ function mNewEvent() {
 async function openEvent(id) {
   await run(async () => {
     const [e, g] = await Promise.all([call('getEvent', { id }), call('guests', { eventId: id }, true)]);
-    S.ev = e.event; S.guests = g.guests; S.quota = g.quota; S.sel.clear(); S.q = ''; S.filter = 'all';
+    S.ev = e.event; S.guests = g.guests; S.quota = g.quota; S.sel.clear(); S.invImg = null; S.q = ''; S.filter = 'all';
     S.ev.config = Object.assign({ fields: [], brand: {}, invite: {}, badge: {}, app: {} }, S.ev.config);
     history.replaceState(null, '', '#ev=' + id);
     renderEvent();
@@ -383,7 +393,7 @@ function tOspiti() {
   <div class="tool">
     <input class="inp" id="gq" placeholder="🔎 Cerca nome, email, telefono, campo…" value="${esc(S.q)}">
     <select class="inp" id="gf" style="flex:0 0 auto;width:auto">
-      <option value="all">Tutti</option><option value="in">Entrati</option><option value="out">Da entrare</option><option value="noinv">Non invitati</option><option value="nomail">Senza email</option>
+      <option value="all">Tutti</option><option value="in">Entrati</option><option value="out">Non entrati</option><option value="noinv">Non invitati</option><option value="nomail">Senza email</option>
     </select>
     <button class="btn c" onclick="mGuest()">＋ Ospite</button>
     <button class="btn i" onclick="$('fileX').click()">⬆ Importa Excel</button>
@@ -423,7 +433,7 @@ function rows() {
     <td class="hm small">${esc(g.email)}${g.email && g.telefono ? '<br>' : ''}${esc(g.telefono)}</td>
     ${fs.map(f => `<td class="hm small">${esc(g.dati[f.k] || '')}</td>`).join('')}
     <td>${g.invito ? '<span class="pill ok">✓ Inviato</span>' : '<span class="pill">—</span>'}</td>
-    <td>${g.checkin ? `<span class="pill ok">Entrato ${fmtOra(g.checkinAt)}</span>` : '<span class="pill w">Da entrare</span>'}</td></tr>`).join('') || `<tr><td colspan="9" style="text-align:center;padding:40px" class="muted">${S.guests.length ? 'Nessun risultato' : 'Nessun ospite: importa un Excel o aggiungine uno.'}</td></tr>`;
+    <td>${g.checkin ? `<span class="pill ok">Entrato ${fmtOra(g.checkinAt)}</span>` : '<span class="pill w">Non entrato</span>'}</td></tr>`).join('') || `<tr><td colspan="9" style="text-align:center;padding:40px" class="muted">${S.guests.length ? 'Nessun risultato' : 'Nessun ospite: importa un Excel o aggiungine uno.'}</td></tr>`;
   $('gmore').textContent = list.length > 300 ? `Mostrati 300 di ${list.length}: affina la ricerca` : '';
   $('gbody').querySelectorAll('tr[data-id]').forEach(tr => tr.onclick = e => {
     if (e.target.dataset.ck) { e.target.checked ? S.sel.add(e.target.dataset.ck) : S.sel.delete(e.target.dataset.ck); rows(); return; }
@@ -606,28 +616,66 @@ function tCampi() {
 }
 
 /* ---------- TAB INVITI & BADGE ---------- */
+const IPOS = [['top', 'In alto, prima del testo'], ['after_text', 'Dopo il testo'], ['after_qr', 'Dopo il QR code'], ['bottom', 'In fondo, dopo la firma']];
+function invCfg() {
+  const inv = S.ev.config.invite || (S.ev.config.invite = {});
+  inv.image = Object.assign({ fileId: '', pos: 'top', link: '' }, inv.image || {});
+  inv.link = Object.assign({ label: '', url: '', pos: 'after_qr' }, inv.link || {});
+  if (inv.signature == null) inv.signature = '';
+  if (inv.footer == null) inv.footer = '';
+  return inv;
+}
+function posOpts(v) { return IPOS.map(p => `<option value="${p[0]}" ${p[0] === v ? 'selected' : ''}>${p[1]}</option>`).join(''); }
 function tInviti() {
-  const inv = S.ev.config.invite, b = S.ev.config.badge, br = S.ev.config.brand;
+  const inv = invCfg(), b = S.ev.config.badge, br = S.ev.config.brand;
   const withMail = S.guests.filter(g => g.email), notInv = withMail.filter(g => !g.invito);
   const ph = [['{nome}', 'Nome'], ['{cognome}', 'Cognome'], ['{evento}', 'Evento'], ['{data}', 'Data'], ['{luogo}', 'Luogo']].concat(S.ev.config.fields.map(f => ['{' + f.k + '}', f.l]));
   $('tab').innerHTML = `<div class="grid g2">
   <div class="card">
     <h3 style="font-size:20px;margin-bottom:4px">✉️ Invito email con QR</h3>
     <p class="small muted" style="margin-bottom:14px">Ogni ospite riceve la sua email con QR personale e il link al pass digitale. Le risposte arrivano alla tua email.</p>
-    <div class="f"><label class="l">Oggetto</label><input class="inp" id="iSub" value="${esc(inv.subject)}"></div>
-    <div class="f"><label class="l">Messaggio</label><textarea class="inp" id="iBody" rows="8">${esc(inv.body)}</textarea></div>
-    <div class="small muted">Tocca per inserire un dato personalizzato:</div>
+    <div class="f"><label class="l">Oggetto</label><input class="inp" id="iSub" data-tpl value="${esc(inv.subject)}"></div>
+    <div class="f"><label class="l">Messaggio</label><textarea class="inp" id="iBody" data-tpl rows="7">${esc(inv.body)}</textarea></div>
+    <div class="small muted">Tocca per inserire un dato personalizzato nel campo selezionato:</div>
     <div class="chips">${ph.map(p => `<button data-ph="${esc(p[0])}">${esc(p[1])}</button>`).join('')}</div>
-    <div class="rowb"><button class="btn g sm" id="iPrev">👁 Anteprima</button><button class="btn i sm" id="iSave">Salva modello</button></div>
-    <div id="iPrevBox" style="margin-top:12px"></div>
+
+    <div class="esec"><div class="esh">🖼️ Immagine <span class="small muted">(facoltativa)</span></div>
+      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+        <div class="imgprev" id="iImgBox">${inv.image.fileId ? '<span class="small muted">Caricamento…</span>' : '<span class="small muted">Nessuna immagine</span>'}</div>
+        <div class="grid" style="gap:6px"><button class="btn sm" id="iImgUp">Carica immagine</button><button class="btn sm g" id="iImgDel" ${inv.image.fileId ? '' : 'disabled'}>Rimuovi</button></div>
+      </div>
+      <div class="fg2" style="margin-top:10px">
+        <div class="f"><label class="l">Posizione</label><select class="inp" id="iImgPos">${posOpts(inv.image.pos)}</select></div>
+        <div class="f"><label class="l">Link al clic sull'immagine</label><input class="inp" id="iImgLink" placeholder="https://… (facoltativo)" value="${esc(inv.image.link)}"></div>
+      </div>
+      <p class="small muted">JPG o PNG, ideale in orizzontale (es. 1200×600). Viene ridimensionata automaticamente.</p>
+    </div>
+
+    <div class="esec"><div class="esh">🔗 Pulsante link <span class="small muted">(facoltativo)</span></div>
+      <div class="fg2">
+        <div class="f"><label class="l">Testo del pulsante</label><input class="inp" id="iLkL" data-tpl placeholder="Es. Scopri il programma" value="${esc(inv.link.label)}"></div>
+        <div class="f"><label class="l">Indirizzo</label><input class="inp" id="iLkU" placeholder="https://…" value="${esc(inv.link.url)}"></div>
+      </div>
+      <div class="f"><label class="l">Posizione</label><select class="inp" id="iLkP">${posOpts(inv.link.pos)}</select></div>
+    </div>
+
+    <div class="esec"><div class="esh">✍️ Firma</div>
+      <textarea class="inp" id="iSig" data-tpl rows="3" placeholder="Es. A presto,&#10;Lo staff di With You">${esc(inv.signature)}</textarea>
+    </div>
+    <div class="esec"><div class="esh">📄 Footer <span class="small muted">(testo piccolo in fondo all'email)</span></div>
+      <textarea class="inp" id="iFoot" data-tpl rows="2" placeholder="Es. Ragione sociale, indirizzo, contatti, informativa privacy">${esc(inv.footer)}</textarea>
+    </div>
+
+    <div class="rowb" style="margin-top:14px"><button class="btn g sm" id="iPrev">👁 Anteprima email</button><button class="btn i sm" id="iSave">Salva modello</button></div>
     <hr style="border:0;border-top:1px solid var(--line);margin:18px 0">
     <div class="grid" style="gap:8px">
       <button class="btn c" id="iSendNew" ${notInv.length ? '' : 'disabled'}>Invia a chi non l'ha ricevuto (${notInv.length})</button>
+      <button class="btn i" id="iSendPick" ${withMail.length ? '' : 'disabled'}>Invia a determinati ospiti…</button>
       <button class="btn g" id="iSendAll" ${withMail.length ? '' : 'disabled'}>Reinvia a tutti con email (${withMail.length})</button>
     </div>
     <p class="small muted" style="margin-top:10px">Email disponibili oggi: <b>${S.quota == null ? '—' : S.quota}</b>. Per gli ospiti senza email usa il link WhatsApp dalla scheda ospite o i badge PDF.</p>
   </div>
-  <div class="card">
+  <div class="card" style="align-self:start">
     <h3 style="font-size:20px;margin-bottom:4px">🏷️ Badge e inviti stampabili</h3>
     <p class="small muted" style="margin-bottom:14px">PDF pronti da stampare, con logo, colori, nome e QR di ogni ospite.</p>
     <div class="fg2">
@@ -637,7 +685,7 @@ function tInviti() {
     <div class="badgeprev"><div class="bd" style="background:${esc(br.primary || '#FF5A36')}">${esc(S.ev.nome)}</div>${S.ev.logo ? `<img src="${S.ev.logo}">` : ''}<div class="bn">Mario Rossi</div><div class="bf" id="bfPrev"></div><div class="bq"></div></div>
     <div class="grid" style="gap:8px">
       <button class="btn c" id="bAll" ${S.guests.length ? '' : 'disabled'}>Scarica tutti (${S.guests.length})</button>
-      <button class="btn g" id="bOut">Solo chi non è ancora entrato</button>
+      <button class="btn g" id="bOut">Solo chi non è entrato</button>
     </div>
     <p class="small muted" style="margin-top:10px">Suggerimento: per i badge usa cartoncino 250 g e porta-badge 90×60 mm.</p>
   </div></div>`;
@@ -647,20 +695,140 @@ function tInviti() {
   $('bFld').onchange = () => { prevF(); b.field = $('bFld').value; };
   $('bFmt').onchange = () => b.format = $('bFmt').value;
   let lastTa = $('iBody');
-  $('iSub').onfocus = e => lastTa = e.target; $('iBody').onfocus = e => lastTa = e.target;
-  document.querySelectorAll('[data-ph]').forEach(x => x.onclick = () => { const t = lastTa, s = t.selectionStart || t.value.length; t.value = t.value.slice(0, s) + x.dataset.ph + t.value.slice(t.selectionEnd || s); t.focus(); });
-  const sync = () => { inv.subject = $('iSub').value; inv.body = $('iBody').value; };
-  $('iPrev').onclick = () => { sync(); const g = S.guests[0] || { nome: 'Mario', cognome: 'Rossi', dati: {} }; $('iPrevBox').innerHTML = `<div class="prev"><b>${esc(fillTpl(inv.subject, g))}</b>\n\n${esc(fillTpl(inv.body, g))}\n\n[ QR CODE ]  [ Apri il tuo pass digitale ]</div>`; };
-  $('iSave').onclick = () => run(async () => { sync(); await saveCfg(); toast('Modello salvato', 'ok'); });
-  $('iSendNew').onclick = () => { sync(); run(async () => { await saveCfg(); sendInvites(S.guests.filter(g => g.email && !g.invito)); }); };
-  $('iSendAll').onclick = () => { if (!confirm('Inviare l\'email a tutti i ' + withMail.length + ' ospiti con email, anche a chi l\'ha già ricevuta?')) return; sync(); run(async () => { await saveCfg(); sendInvites(withMail); }); };
+  document.querySelectorAll('[data-tpl]').forEach(el => el.onfocus = e => lastTa = e.target);
+  document.querySelectorAll('[data-ph]').forEach(x => x.onclick = () => { const t = lastTa, s = t.selectionStart ?? t.value.length; t.value = t.value.slice(0, s) + x.dataset.ph + t.value.slice(t.selectionEnd ?? s); t.focus(); });
+  const sync = () => {
+    inv.subject = $('iSub').value; inv.body = $('iBody').value; inv.signature = $('iSig').value; inv.footer = $('iFoot').value;
+    inv.image.pos = $('iImgPos').value; inv.image.link = $('iImgLink').value.trim();
+    inv.link.label = $('iLkL').value; inv.link.url = $('iLkU').value.trim(); inv.link.pos = $('iLkP').value;
+  };
+  const check = () => {
+    for (const [v, n] of [[inv.image.link, 'Link dell\'immagine'], [inv.link.url, 'Indirizzo del pulsante']]) if (v && !okUrl(v)) throw new Error(n + ': deve iniziare con https://');
+    if (inv.link.url && !inv.link.label.trim()) inv.link.label = 'Scopri di più';
+  };
+  const save = async () => { sync(); check(); await saveCfg(); };
+  showInvImg();
+  $('iImgUp').onclick = () => $('fileI').click();
+  $('iImgDel').onclick = () => run(async () => {
+    const r = await call('uploadInviteImage', { eventId: S.ev.id, remove: true });
+    invCfg().image.fileId = r.fileId; S.invImg = null; toast('Immagine rimossa', 'ok'); showInvImg(); $('iImgDel').disabled = true;
+  });
+  $('iPrev').onclick = () => run(async () => { sync(); check(); await previewEmail(); });
+  $('iSave').onclick = () => run(async () => { await save(); toast('Modello salvato', 'ok'); });
+  $('iSendNew').onclick = () => run(async () => { await save(); sendInvites(S.guests.filter(g => g.email && !g.invito)); });
+  $('iSendPick').onclick = () => run(async () => { await save(); mPickSend(); });
+  $('iSendAll').onclick = () => { if (!confirm('Inviare l\'email a tutti i ' + withMail.length + ' ospiti con email, anche a chi l\'ha già ricevuta?')) return; run(async () => { await save(); sendInvites(withMail); }); };
   $('bAll').onclick = () => { saveCfg().catch(() => {}); badgePdf(S.guests, 'badge-' + slug(S.ev.nome) + '.pdf'); };
-  $('bOut').onclick = () => badgePdf(S.guests.filter(g => !g.checkin), 'badge-' + slug(S.ev.nome) + '-da-entrare.pdf');
+  $('bOut').onclick = () => badgePdf(S.guests.filter(g => !g.checkin), 'badge-' + slug(S.ev.nome) + '-non-entrati.pdf');
+}
+function okUrl(u) { return /^(https?:\/\/|mailto:|tel:)/i.test(String(u || '').trim()); }
+async function getInvImg() {
+  const id = invCfg().image.fileId;
+  if (!id) return '';
+  if (S.invImg && S.invImg.id === id) return S.invImg.data;
+  const r = await call('getInviteImage', { eventId: S.ev.id }, true);
+  S.invImg = { id, data: r.data };
+  return r.data;
+}
+function showInvImg() {
+  const box = $('iImgBox'); if (!box) return;
+  if (!invCfg().image.fileId) { box.innerHTML = '<span class="small muted">Nessuna immagine</span>'; return; }
+  getInvImg().then(d => { if ($('iImgBox')) $('iImgBox').innerHTML = d ? `<img src="${d}" alt="">` : '<span class="small muted">Immagine non trovata</span>'; }).catch(() => {});
+}
+$('fileI').onchange = e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  run(async () => {
+    busy(true);
+    try {
+      const data = await resizeImg(f, 1200);
+      const r = await call('uploadInviteImage', { eventId: S.ev.id, data }, true);
+      invCfg().image.fileId = r.fileId; S.invImg = { id: r.fileId, data };
+      showInvImg(); if ($('iImgDel')) $('iImgDel').disabled = false;
+      toast('Immagine caricata ✓', 'ok');
+    } finally { busy(false); }
+  });
+};
+function resizeImg(file, maxW) {
+  return new Promise((res, rej) => {
+    const img = new Image();
+    img.onload = () => {
+      const k = Math.min(1, maxW / img.width), w = Math.round(img.width * k), h = Math.round(img.height * k);
+      const c = document.createElement('canvas'); c.width = w; c.height = h; const x = c.getContext('2d');
+      const png = file.type === 'image/png';
+      if (!png) { x.fillStyle = '#fff'; x.fillRect(0, 0, w, h); }
+      x.drawImage(img, 0, 0, w, h);
+      let d = png ? c.toDataURL('image/png') : c.toDataURL('image/jpeg', .85);
+      if (d.length > 1900000) { x.globalCompositeOperation = 'destination-over'; x.fillStyle = '#fff'; x.fillRect(0, 0, w, h); let q = .8; do { d = c.toDataURL('image/jpeg', q); q -= .1; } while (d.length > 1900000 && q > .3); }
+      if (d.length > 2700000) return rej(new Error('Immagine troppo pesante'));
+      res(d);
+    };
+    img.onerror = () => rej(new Error('Immagine non valida (usa JPG o PNG)'));
+    img.src = URL.createObjectURL(file);
+  });
+}
+function emailHtml(g, imgData) {
+  const inv = invCfg(), br = S.ev.config.brand || {}, color = br.primary || '#FF5A36', dark = br.dark || '#13141B';
+  const txt = s => esc(fillTpl(s, g)).replace(/\n/g, '<br>');
+  const P = { top: '', after_text: '', after_qr: '', bottom: '' };
+  if (imgData) {
+    let h = `<img src="${imgData}" alt="" style="max-width:100%;width:520px;height:auto;border-radius:12px;display:block;margin:0 auto">`;
+    if (okUrl(inv.image.link)) h = `<a href="${esc(inv.image.link)}" target="_blank">${h}</a>`;
+    P[inv.image.pos || 'top'] += `<div style="text-align:center;margin:16px 0">${h}</div>`;
+  }
+  if (okUrl(inv.link.url)) P[inv.link.pos || 'after_qr'] += `<p style="text-align:center;margin:18px 0"><a href="${esc(inv.link.url)}" target="_blank" style="display:inline-block;border:2px solid ${color};color:${color};padding:11px 22px;border-radius:999px;text-decoration:none;font-weight:bold">${txt(inv.link.label || 'Scopri di più')}</a></p>`;
+  const qr = qrCanvas(qrText(g), 5, 2).toDataURL('image/png');
+  const footer = [inv.footer ? txt(inv.footer) : '', S.ev.limiti.whiteLabel ? '' : 'Accrediti gestiti con ' + esc(C.BRAND)].filter(Boolean).join('<br>');
+  return `<div style="background:#F4F2EE;padding:24px 10px;font-family:Arial,Helvetica,sans-serif"><div style="max-width:560px;margin:auto;background:#fff;border-radius:16px;overflow:hidden">
+    <div style="background:${dark};color:#fff;padding:18px 24px;font-size:19px;font-weight:bold">${esc(S.ev.nome)}</div>
+    <div style="padding:24px;color:#222;font-size:15px;line-height:1.6">
+      ${S.ev.logo ? `<p style="text-align:center"><img src="${S.ev.logo}" style="max-height:70px;max-width:220px"></p>` : ''}
+      ${P.top}<p>${txt(inv.body)}</p>${P.after_text}
+      <div style="text-align:center;margin:22px 0;padding:18px;border:1px dashed #ddd;border-radius:14px"><div style="font-weight:bold;font-size:18px;margin-bottom:8px">${esc(fullName(g))}</div><img src="${qr}" width="180" height="180" alt="QR" style="image-rendering:pixelated"><div style="font-size:12px;color:#888;margin-top:6px">Mostra questo QR all'ingresso</div></div>
+      <p style="text-align:center"><a style="display:inline-block;background:${color};color:#fff;padding:13px 24px;border-radius:999px;text-decoration:none;font-weight:bold">Apri il tuo pass digitale</a></p>
+      ${P.after_qr}${inv.signature ? `<p style="margin-top:24px">${txt(inv.signature)}</p>` : ''}${P.bottom}
+    </div>
+    ${footer ? `<div style="padding:14px 24px;background:#FAFAF8;color:#999;font-size:11px">${footer}</div>` : ''}
+  </div></div>`;
+}
+async function previewEmail() {
+  const g = S.guests.find(x => x.email) || S.guests[0] || { id: 'x', token: 'ANTEPRIMA', nome: 'Mario', cognome: 'Rossi', dati: {} };
+  const img = await getInvImg();
+  openModal(mHead('Anteprima email') + `<div class="mb" style="padding:0">
+    <div style="padding:12px 22px;border-bottom:1px solid var(--line);font-size:14px"><span class="muted">Oggetto:</span> <b>${esc(fillTpl(invCfg().subject, g))}</b><br><span class="muted">A:</span> ${esc(fullName(g))} ${g.email ? '&lt;' + esc(g.email) + '&gt;' : ''}</div>
+    ${emailHtml(g, img)}</div><div class="mf"><button class="btn i" onclick="closeModal()">Chiudi</button></div>`, true);
 }
 function fillTpl(t, g) {
   let s = String(t || '').replace(/\{nome\}/g, g.nome || '').replace(/\{cognome\}/g, g.cognome || '').replace(/\{evento\}/g, S.ev.nome).replace(/\{data\}/g, fmtData(S.ev.data)).replace(/\{luogo\}/g, S.ev.luogo || '');
   S.ev.config.fields.forEach(f => s = s.split('{' + f.k + '}').join((g.dati || {})[f.k] || ''));
   return s;
+}
+function mPickSend() {
+  const all = S.guests.filter(g => g.email).sort((a, b) => (a.cognome + a.nome).localeCompare(b.cognome + b.nome, 'it'));
+  const noMail = S.guests.length - all.length, sel = new Set();
+  openModal(mHead('Invia a determinati ospiti') + `<div class="mb">
+    <div class="tool" style="margin-bottom:10px"><input class="inp" id="pkQ" placeholder="🔎 Cerca nome, email o campo…">
+      <select class="inp" id="pkF" style="flex:0 0 auto;width:auto"><option value="all">Tutti</option><option value="noinv">Non invitati</option><option value="inv">Già invitati</option><option value="out">Non entrati</option><option value="in">Entrati</option></select></div>
+    <div class="rowb" style="margin-bottom:8px"><div style="display:flex;gap:6px"><button class="btn sm" id="pkAll">Seleziona visibili</button><button class="btn sm g" id="pkNone">Deseleziona tutti</button></div><span class="small muted" id="pkInfo"></span></div>
+    <div class="picklist" id="pkL"></div>
+    ${noMail ? `<p class="small muted" style="margin-top:8px">${noMail} ospiti senza email non sono in elenco: usa WhatsApp o i badge PDF.</p>` : ''}
+  </div><div class="mf"><button class="btn g" onclick="closeModal()">Annulla</button><button class="btn c" id="pkGo" disabled>Invia</button></div>`, true);
+  const vis = () => {
+    const q = norm($('pkQ').value), f = $('pkF').value;
+    return all.filter(g => (f === 'all' || (f === 'noinv' && !g.invito) || (f === 'inv' && g.invito) || (f === 'out' && !g.checkin) || (f === 'in' && g.checkin)) &&
+      (!q || norm([g.nome, g.cognome, g.email].concat(Object.values(g.dati || {})).join(' ')).includes(q)));
+  };
+  const draw = () => {
+    const v = vis();
+    $('pkL').innerHTML = v.slice(0, 500).map(g => `<label class="pk"><input type="checkbox" data-pk="${g.id}" ${sel.has(g.id) ? 'checked' : ''}><span class="pkn"><b>${esc((g.cognome ? g.cognome + ' ' : '') + g.nome)}</b><span class="small muted">${esc(g.email)}</span></span>${g.invito ? '<span class="pill ok">Invitato</span>' : '<span class="pill">Non invitato</span>'}</label>`).join('') || '<p class="muted small" style="padding:20px;text-align:center">Nessun ospite</p>';
+    $('pkInfo').textContent = `${v.length} in elenco · ${sel.size} selezionati`;
+    $('pkGo').disabled = !sel.size; $('pkGo').textContent = sel.size ? `Invia a ${sel.size} ospit${sel.size > 1 ? 'i' : 'e'}` : 'Invia';
+  };
+  $('pkL').onchange = e => { const id = e.target.dataset.pk; if (!id) return; e.target.checked ? sel.add(id) : sel.delete(id); draw(); };
+  $('pkQ').oninput = draw; $('pkF').onchange = draw;
+  $('pkAll').onclick = () => { vis().forEach(g => sel.add(g.id)); draw(); };
+  $('pkNone').onclick = () => { sel.clear(); draw(); };
+  $('pkGo').onclick = () => { const list = all.filter(g => sel.has(g.id)); const already = list.filter(g => g.invito).length; if (already && !confirm(`${already} dei selezionati hanno già ricevuto l'invito: lo riceveranno di nuovo. Procedere?`)) return; closeModal(); sendInvites(list); };
+  draw();
 }
 async function sendInvites(list) {
   if (!list.length) return toast('Nessun destinatario', 'err');
@@ -810,9 +978,11 @@ function resizeLogo(file) {
 
 /* ---------- TAB LIVE ---------- */
 function tLive() {
-  $('tab').innerHTML = `<div class="kpis"><div class="kpi"><b id="kIn">—</b><span>Entrati</span></div><div class="kpi"><b id="kOut">—</b><span>Da entrare</span></div><div class="kpi"><b id="kPct">—</b><span>Presenza</span></div><div class="kpi"><b id="kDev">—</b><span>Dispositivi attivi</span></div></div>
+  $('tab').innerHTML = `<div class="rowb" style="margin-bottom:14px"><span class="small muted">Si aggiorna ogni 10 secondi.</span><button class="btn c" id="lExp">⬇ Esporta report ingressi (Excel)</button></div>
+  <div class="kpis"><div class="kpi"><b id="kIn">—</b><span>Entrati</span></div><div class="kpi"><b id="kOut">—</b><span>Non entrati</span></div><div class="kpi"><b id="kPct">—</b><span>Presenza</span></div><div class="kpi"><b id="kDev">—</b><span>Dispositivi attivi</span></div></div>
   <div class="grid g2"><div class="card"><h3 style="font-size:18px">Ingressi per orario</h3><div class="hbars" id="lH" style="margin-bottom:26px"></div></div>
   <div class="card"><div class="rowb"><h3 style="font-size:18px">Ultimi movimenti</h3><span class="small muted" id="lUp"></span></div><div class="feed" id="lF"></div></div></div>`;
+  $('lExp').onclick = () => run(exportReport);
   const load = () => call('stats', { eventId: S.ev.id }, true).then(s => {
     if (!$('kIn')) return;
     $('kIn').textContent = s.in; $('kOut').textContent = s.tot - s.in; $('kPct').textContent = s.tot ? Math.round(s.in / s.tot * 100) + '%' : '0%'; $('kDev').textContent = s.devices.length;
@@ -822,6 +992,39 @@ function tLive() {
     $('lUp').textContent = 'agg. ' + new Date().toLocaleTimeString('it-IT');
   }).catch(e => toast(e.message, 'err'));
   load(); S.liveT = setInterval(load, 10000);
+}
+function dtIt(iso) { const d = new Date(iso); return isNaN(d) ? '' : d.toLocaleString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }); }
+async function exportReport() {
+  busy(true);
+  try {
+    await libXLSX();
+    const [gr, lg] = await Promise.all([call('guests', { eventId: S.ev.id }, true), call('eventLog', { eventId: S.ev.id }, true)]);
+    S.guests = gr.guests;
+    const fs = S.ev.config.fields, gs = gr.guests, ins = gs.filter(g => g.checkin).sort((a, b) => new Date(a.checkinAt) - new Date(b.checkinAt)), outs = gs.filter(g => !g.checkin);
+    const base = g => { const o = { Nome: g.nome, Cognome: g.cognome, Email: g.email, Telefono: g.telefono }; fs.forEach(f => o[f.l] = g.dati[f.k] || ''); return o; };
+    const pct = gs.length ? Math.round(ins.length / gs.length * 1000) / 10 : 0;
+    const byPost = {}, byHour = {};
+    ins.forEach(g => {
+      byPost[g.checkinBy || '—'] = (byPost[g.checkinBy || '—'] || 0) + 1;
+      const d = new Date(g.checkinAt); if (!isNaN(d)) { const k = String(d.getHours()).padStart(2, '0'); byHour[k] = (byHour[k] || 0) + 1; }
+    });
+    const sum = [
+      ['Report ingressi', S.ev.nome], ['Data evento', fmtData(S.ev.data)], ['Luogo', S.ev.luogo || ''], ['Generato il', dtIt(new Date().toISOString())], [],
+      ['Ospiti in lista', gs.length], ['Entrati', ins.length], ['Non entrati', outs.length], ['Presenza %', pct],
+      ['Primo ingresso', ins.length ? dtIt(ins[0].checkinAt) : ''], ['Ultimo ingresso', ins.length ? dtIt(ins[ins.length - 1].checkinAt) : ''], [],
+      ['Ingressi per postazione', '']
+    ].concat(Object.keys(byPost).sort().map(k => [k, byPost[k]]));
+    const wb = XLSX.utils.book_new();
+    const add = (name, ws, cols) => { ws['!cols'] = cols.map(w => ({ wch: w })); XLSX.utils.book_append_sheet(wb, ws, name); };
+    add('Riepilogo', XLSX.utils.aoa_to_sheet(sum), [26, 40]);
+    const wIn = fs.map(() => 18);
+    add('Entrati', XLSX.utils.json_to_sheet(ins.length ? ins.map(g => Object.assign({ 'Orario ingresso': dtIt(g.checkinAt) }, base(g), { Postazione: g.checkinBy })) : [{ 'Orario ingresso': 'Nessun ingresso' }]), [20, 16, 18, 28, 16].concat(wIn, [18]));
+    add('Non entrati', XLSX.utils.json_to_sheet(outs.length ? outs.map(g => Object.assign(base(g), { Invito: g.invito || '' })) : [{ Nome: 'Tutti gli ospiti sono entrati' }]), [16, 18, 28, 16].concat(wIn, [20]));
+    add('Per orario', XLSX.utils.aoa_to_sheet([['Fascia oraria', 'Ingressi']].concat(Object.keys(byHour).sort().map(h => [h + ':00 – ' + h + ':59', byHour[h]]))), [18, 10]);
+    add('Movimenti', XLSX.utils.json_to_sheet(lg.log.length ? lg.log.map(r => ({ 'Data e ora': dtIt(r.ts), Ospite: r.ospite, Azione: ({ IN: 'Ingresso', ANNULLATO: 'Ingresso annullato', 'AGGIUNTO+IN': 'Aggiunto in ingresso + entrato', AGGIUNTO: 'Aggiunto in ingresso', AZZERATI: 'Check-in azzerati' })[r.azione] || r.azione, Postazione: r.postazione })) : [{ 'Data e ora': 'Nessun movimento' }]), [20, 28, 28, 20]);
+    XLSX.writeFile(wb, 'report-ingressi-' + slug(S.ev.nome) + '.xlsx');
+    toast('Report scaricato ✓', 'ok');
+  } finally { busy(false); }
 }
 
 boot();
