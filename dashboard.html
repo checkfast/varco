@@ -335,7 +335,7 @@ function renderHome() {
   <button class="btn c" onclick="mNewEvent()" ${free ? '' : 'disabled'}>＋ Nuovo evento</button></div>
   <div class="grid g2">
     <div class="card"><h3 style="font-size:19px;margin-bottom:8px">I tuoi pacchetti</h3>
-      ${S.lic.length ? S.lic.map(l => `<div class="lic"><div><b>${esc(l.nome)}</b> <span class="pill ${l.attiva ? 'ok' : 'no'}">${l.attiva ? 'Attivo' : 'Scaduto'}</span><div class="small muted">${l.eventi >= 900 ? 'Eventi illimitati' : l.eventiUsati + '/' + l.eventi + ' eventi usati'} · ${l.ospiti} ospiti/evento · ${l.dispositivi} dispositivi${l.whiteLabel ? ' · White label' : ''}</div></div><div class="small muted" style="text-align:right">Scade il<br><b>${new Date(l.scadenza).toLocaleDateString('it-IT')}</b></div></div>`).join('') : '<p class="muted small">Nessun pacchetto attivo.</p>'}
+      ${S.lic.length ? S.lic.map(l => `<div class="lic"><div><b>${esc(l.nome)}</b> <span class="pill ${l.attiva ? 'ok' : 'no'}">${l.attiva ? 'Attivo' : 'Scaduto'}</span><div class="small muted">${l.eventi >= 900 ? 'Eventi illimitati' : l.eventiUsati + '/' + l.eventi + ' eventi usati'} · ${l.ospiti} ospiti/evento · ${l.dispositivi} dispositivi${l.emailMax ? ' · ' + l.emailUsate + '/' + l.emailMax + ' email usate' : ''}${l.whiteLabel ? ' · White label' : ''}</div></div><div class="small muted" style="text-align:right">Scade il<br><b>${new Date(l.scadenza).toLocaleDateString('it-IT')}</b></div></div>`).join('') : '<p class="muted small">Nessun pacchetto attivo.</p>'}
     </div>
     <div class="card"><h3 style="font-size:19px;margin-bottom:6px">Attiva un codice di sblocco</h3>
       <p class="small muted" style="margin-bottom:12px">Lo trovi nell'email di conferma acquisto.</p>
@@ -712,7 +712,7 @@ function tInviti() {
       <button class="btn i" id="iSendPick" ${withMail.length ? '' : 'disabled'}>Invia a determinati ospiti…</button>
       <button class="btn g" id="iSendAll" ${withMail.length ? '' : 'disabled'}>Reinvia a tutti con email (${withMail.length})</button>
     </div>
-    <p class="small muted" style="margin-top:10px">Email disponibili oggi: <b>${S.quota == null ? '—' : S.quota}</b>. Per gli ospiti senza email usa il link WhatsApp dalla scheda ospite o i badge PDF.</p>
+    <p class="small muted" style="margin-top:10px">Email del pacchetto: <b>${emLeft()}</b> rimaste su ${S.ev.limiti.emailMax || '—'} · Invii disponibili oggi: <b>${S.quota == null ? '—' : S.quota}</b>.<br>Per gli ospiti senza email usa il link WhatsApp dalla scheda ospite o i badge PDF: non consumano email.</p>
   </div>
   <div class="card" style="align-self:start">
     <h3 style="font-size:20px;margin-bottom:4px">🏷️ Badge e inviti stampabili</h3>
@@ -870,8 +870,13 @@ function mPickSend() {
   $('pkGo').onclick = () => { const list = all.filter(g => sel.has(g.id)); const already = list.filter(g => g.invito).length; if (already && !confirm(`${already} dei selezionati hanno già ricevuto l'invito: lo riceveranno di nuovo. Procedere?`)) return; closeModal(); sendInvites(list); };
   draw();
 }
+function emLeft() { const l = S.ev.limiti; return l.emailMax ? Math.max(0, l.emailMax - (l.emailUsate || 0)) : Infinity; }
 async function sendInvites(list) {
   if (!list.length) return toast('Nessun destinatario', 'err');
+  const left = emLeft();
+  if (left < 1) return toast('Hai usato tutte le email del pacchetto: contattaci per aggiungerne altre, oppure usa WhatsApp o i badge PDF.', 'err');
+  if (list.length > left && !confirm(`Il tuo pacchetto ha ancora ${left} email: verranno inviati i primi ${left} inviti. Procedere?`)) return;
+  if (list.length > left) list = list.slice(0, left);
   if (S.quota != null && S.quota < list.length && !confirm(`Oggi puoi inviare ancora ${S.quota} email: verranno inviate le prime ${S.quota}, le altre domani. Procedere?`)) return;
   openModal(mHead('Invio inviti') + `<div class="mb"><p id="spT">Preparazione…</p><div class="prog"><i id="spB"></i></div><p class="small muted">Non chiudere la pagina durante l'invio.</p></div><div class="mf"><button class="btn g" id="spStop">Interrompi</button></div>`);
   let stop = false, sent = 0, skipped = 0; $('spStop').onclick = () => { stop = true; };
@@ -881,11 +886,13 @@ async function sendInvites(list) {
       const items = chunk.map(g => ({ id: g.id, qr: qrCanvas(qrText(g), 8, 2).toDataURL('image/png').split(',')[1] }));
       const r = await call('sendInvites', { eventId: S.ev.id, items }, true);
       sent += r.sent; skipped += r.skipped; S.quota = r.quota;
+      if (r.emailMax) { S.ev.limiti.emailUsate = r.emailUsate; S.ev.limiti.emailMax = r.emailMax; }
       const now = new Date().toLocaleString('it-IT');
       chunk.slice(0, r.sent + r.skipped).forEach(g => { if (g.email) g.invito = g.invito || now; });
       $('spT').textContent = `Inviate ${sent} di ${list.length}${skipped ? ' · ' + skipped + ' saltate' : ''}`;
       $('spB').style.width = Math.min(100, (i + chunk.length) / list.length * 100) + '%';
       if (r.quota < 1) { toast('Quota email giornaliera esaurita: riprendi domani', 'err'); break; }
+      if (r.emailMax && r.emailUsate >= r.emailMax) { toast('Hai usato tutte le email del pacchetto', 'err'); break; }
     }
     await reloadGuests();
     $('spT').textContent = `✅ Completato: ${sent} email inviate${skipped ? ', ' + skipped + ' saltate (email non valida)' : ''}.`;
