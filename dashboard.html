@@ -354,15 +354,16 @@ function renderHome() {
   <div class="hello rowb" style="margin-bottom:20px"><div><h1>Ciao ${esc((S.user.nome || '').split(' ')[0] || '')} 👋</h1><p class="muted">${free ? `Hai <b>${free >= 900 ? 'eventi illimitati' : free + ' evento' + (free > 1 ? 'i' : '') + ' disponibil' + (free > 1 ? 'i' : 'e')}</b> da creare.` : 'Attiva un codice di sblocco per creare il tuo primo evento.'}</p></div>
   <button class="btn c" onclick="mNewEvent()" ${free ? '' : 'disabled'}>＋ Nuovo evento</button></div>
   ${S.lic.filter(l => l.attiva).map(l => expBanner(l.scadenza, l.nome)).join('')}
-  <div class="grid g2">
+  <div class="grid ${free ? '' : 'g2'}">
     <div class="card"><h3 style="font-size:19px;margin-bottom:8px">I tuoi pacchetti</h3>
       ${S.lic.length ? S.lic.map(l => `<div class="lic"><div><b>${esc(l.nome)}</b> <span class="pill ${l.attiva ? 'ok' : 'no'}">${l.attiva ? 'Attivo' : 'Scaduto'}</span><div class="small muted">${l.eventi >= 900 ? 'Eventi illimitati' : l.eventiUsati + '/' + l.eventi + ' eventi usati'} · ${l.ospiti} ospiti/evento · ${l.dispositivi} dispositivi${l.emailMax ? ' · ' + l.emailUsate + '/' + l.emailMax + ' email usate' : ''}${l.whiteLabel ? ' · White label' : ''}</div></div><div class="small muted" style="text-align:right">Scade il<br><b>${new Date(l.scadenza).toLocaleDateString('it-IT')}</b></div></div>`).join('') : '<p class="muted small">Nessun pacchetto attivo.</p>'}
+      ${free ? `<details style="margin-top:14px"><summary class="small muted" style="cursor:pointer">Hai un altro codice di sblocco?</summary><div style="display:flex;gap:8px;margin-top:10px;max-width:420px"><input class="inp" id="actCode" placeholder="VRC-XXXX-XXXX" style="text-transform:uppercase"><button class="btn i" id="actBtn">Attiva</button></div></details>` : ''}
     </div>
-    <div class="card"><h3 style="font-size:19px;margin-bottom:6px">Attiva un codice di sblocco</h3>
+    ${free ? '' : `<div class="card"><h3 style="font-size:19px;margin-bottom:6px">Attiva un codice di sblocco</h3>
       <p class="small muted" style="margin-bottom:12px">Lo trovi nell'email di conferma acquisto.</p>
       <div style="display:flex;gap:8px"><input class="inp" id="actCode" placeholder="VRC-XXXX-XXXX" style="text-transform:uppercase"><button class="btn i" id="actBtn">Attiva</button></div>
       <p class="small muted" style="margin-top:12px">Ti serve un altro pacchetto? <a href="index.html#prezzi" target="_blank"><b>Acquista</b></a></p>
-    </div>
+    </div>`}
   </div>
   <h2 style="font-size:24px;margin:30px 0 0">I tuoi eventi</h2>
   ${S.events.length ? `<div class="evs">${S.events.map(e => `<div class="ev" onclick="openEvent('${e.id}')"><h3>${esc(e.nome)}</h3><div class="small muted">📅 ${esc(fmtData(e.data) || 'Data da definire')}</div><div class="small muted">📍 ${esc(e.luogo || '—')}</div><div style="margin-top:12px;display:flex;gap:6px;flex-wrap:wrap"><span class="pill">Codice app ${esc(e.codiceApp)}</span><span class="pill">${esc(e.limiti.piano)}</span></div></div>`).join('')}</div>`
