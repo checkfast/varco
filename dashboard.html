@@ -387,14 +387,47 @@ function renderTab() {
 
 /* ---------- TAB OSPITI ---------- */
 function shownFields() { return S.ev.config.fields.filter(f => f.k !== 'note').slice(0, 3); }
+const SORT_CSS = '.gt th.srt{cursor:pointer;user-select:none}.gt th.srt.on{color:var(--ink)}.gt th .sa{display:inline-flex;flex-direction:column;vertical-align:middle;margin-left:6px;line-height:.75}.gt th .sa b{font-size:9px;color:#C9C1B4;padding:1px 3px;cursor:pointer}.gt th .sa b:hover{color:var(--ink)}.gt th .sa b.act{color:var(--coral)}.msort{display:none!important}@media(max-width:760px){.msort{display:block!important}}';
+function sortCols() {
+  return [['ospite', 'Ospite'], ['contatti', 'Contatti']].concat(shownFields().map(f => ['f:' + f.k, f.l]), [['invito', 'Invito'], ['stato', 'Stato']]);
+}
+function sortVal(g, k) {
+  if (k === 'ospite') return ((g.cognome || '') + ' ' + (g.nome || '')).trim();
+  if (k === 'contatti') return g.email || g.telefono || '';
+  if (k === 'invito') return g.invito || '';
+  if (k === 'stato') return g.checkin ? (g.checkinAt || '1') : '';
+  return (g.dati || {})[k.slice(2)] || '';
+}
+function sortList(list) {
+  const k = S.sort.k, d = S.sort.dir;
+  return list.sort((a, b) => {
+    const x = String(sortVal(a, k)).trim(), y = String(sortVal(b, k)).trim();
+    if (!x && !y) return ((a.cognome || '') + a.nome).localeCompare((b.cognome || '') + b.nome, 'it');
+    if (!x) return 1; if (!y) return -1;
+    return d * x.localeCompare(y, 'it', { numeric: true, sensitivity: 'base' });
+  });
+}
+function renderHead() {
+  const cols = sortCols(), hm = k => k === 'ospite' || k === 'invito' || k === 'stato' ? '' : 'hm';
+  $('ghead').innerHTML = `<tr><th class="ck"><input type="checkbox" id="gall"></th>${cols.map(c => {
+    const on = S.sort.k === c[0];
+    return `<th class="${hm(c[0])} srt${on ? ' on' : ''}" data-sk="${c[0]}" title="Clicca per ordinare">${esc(c[1])}<span class="sa"><b data-dir="1" class="${on && S.sort.dir === 1 ? 'act' : ''}" title="Crescente (A→Z, 0→9)">▲</b><b data-dir="-1" class="${on && S.sort.dir === -1 ? 'act' : ''}" title="Decrescente (Z→A, 9→0)">▼</b></span></th>`;
+  }).join('')}</tr>`;
+  $('gall').onchange = e => { filtered().forEach(g => e.target.checked ? S.sel.add(g.id) : S.sel.delete(g.id)); rows(); };
+  $('gs').innerHTML = cols.map(c => `<option value="${c[0]}|1">${esc(c[1])} ↑</option><option value="${c[0]}|-1">${esc(c[1])} ↓</option>`).join('');
+  $('gs').value = S.sort.k + '|' + S.sort.dir;
+}
+function setSort(k, dir) { S.sort = { k, dir }; renderHead(); rows(); }
 function tOspiti() {
-  const fs = shownFields();
+  if (!$('srtcss')) document.head.insertAdjacentHTML('beforeend', '<style id="srtcss">' + SORT_CSS + '</style>');
+  if (!S.sort || !sortCols().some(c => c[0] === S.sort.k)) S.sort = { k: 'ospite', dir: 1 };
   $('tab').innerHTML = `
   <div class="tool">
     <input class="inp" id="gq" placeholder="🔎 Cerca nome, email, telefono, campo…" value="${esc(S.q)}">
     <select class="inp" id="gf" style="flex:0 0 auto;width:auto">
       <option value="all">Tutti</option><option value="in">Entrati</option><option value="out">Non entrati</option><option value="noinv">Non invitati</option><option value="nomail">Senza email</option>
     </select>
+    <select class="inp msort" id="gs" style="flex:0 0 auto;width:auto" aria-label="Ordina per"></select>
     <button class="btn c" onclick="mGuest()">＋ Ospite</button>
     <button class="btn i" onclick="$('fileX').click()">⬆ Importa Excel</button>
     <button class="btn g" onclick="exportXlsx()">⬇ Esporta</button>
@@ -402,24 +435,30 @@ function tOspiti() {
   </div>
   <div class="stats" id="gstats"></div>
   <div id="gbulk"></div>
-  <table class="gt"><thead><tr><th class="ck"><input type="checkbox" id="gall"></th><th>Ospite</th><th class="hm">Contatti</th>${fs.map(f => `<th class="hm">${esc(f.l)}</th>`).join('')}<th>Invito</th><th>Stato</th></tr></thead><tbody id="gbody"></tbody></table>
+  <table class="gt"><thead id="ghead"></thead><tbody id="gbody"></tbody></table>
   <div class="more" id="gmore"></div>`;
   $('gf').value = S.filter;
   $('gq').oninput = e => { S.q = e.target.value; rows(); };
   $('gf').onchange = e => { S.filter = e.target.value; rows(); };
-  $('gall').onchange = e => { filtered().forEach(g => e.target.checked ? S.sel.add(g.id) : S.sel.delete(g.id)); rows(); };
+  $('gs').onchange = e => { const p = e.target.value.split('|'); setSort(p[0], +p[1]); };
+  $('ghead').onclick = e => {
+    const th = e.target.closest('[data-sk]'); if (!th) return;
+    const d = e.target.dataset.dir, k = th.dataset.sk;
+    setSort(k, d ? +d : (S.sort.k === k ? -S.sort.dir : 1));
+  };
+  renderHead();
   rows();
 }
 function filtered() {
   const q = norm(S.q);
-  return S.guests.filter(g => {
+  return sortList(S.guests.filter(g => {
     if (S.filter === 'in' && !g.checkin) return false;
     if (S.filter === 'out' && g.checkin) return false;
     if (S.filter === 'noinv' && g.invito) return false;
     if (S.filter === 'nomail' && g.email) return false;
     if (!q) return true;
     return norm([g.nome, g.cognome, g.cognome, g.nome, g.email, g.telefono].concat(Object.values(g.dati || {})).join(' ')).includes(q);
-  }).sort((a, b) => (a.cognome + a.nome).localeCompare(b.cognome + b.nome, 'it'));
+  }));
 }
 function rows() {
   const fs = shownFields(), list = filtered(), tot = S.guests.length, inn = S.guests.filter(g => g.checkin).length;
