@@ -247,7 +247,7 @@ dialog::backdrop{background:rgba(19,20,27,.6);backdrop-filter:blur(3px)}
   <p class="sub">Nessun abbonamento nascosto, nessun costo per ospite. Paghi una volta e usi tutte le funzioni.</p>
   <div class="plans" id="plans"></div>
   <div class="ent" id="ent"></div>
-  <p class="allin">Prezzi IVA esclusa · Fattura elettronica inclusa · Ti serve di più? <a href="#ent"><b>Chiedi un preventivo su misura</b></a></p>
+  <p class="allin"><b>Tutti i prezzi sono IVA esclusa (22%)</b> · Fattura elettronica inclusa · Ti serve di più? <a href="#ent"><b>Chiedi un preventivo su misura</b></a></p>
 </div></section>
 
 <section id="faq" style="padding-top:20px"><div class="wrap">
@@ -319,14 +319,14 @@ let PLANS = C.PLANS, ADDONS = C.ADDONS || [], cur = 'PRO', order = null;
 const SEL = {};
 PLANS.forEach(p => SEL[p.id] = new Set());
 const fmtN = n => Number(n).toLocaleString('it-IT');
-function baseEmails(p) { const m = (p.limits || []).join(' ').match(/Max ([\d.]+) email/); return m ? +m[1].replace(/\./g, '') : 0; }
+function baseEmails(p) { if (p.emails) return p.emails; const m = (p.limits || []).join(' ').match(/Max ([\d.]+) email/); return m ? +m[1].replace(/\./g, '') : 0; }
 function selTot(id) {
   const p = PLANS.find(x => x.id === id), ex = ADDONS.filter(a => SEL[id].has(a.id));
-  return { price: p.price + ex.reduce((s, a) => s + a.price, 0), emails: baseEmails(p) + ex.reduce((s, a) => s + a.emails, 0), ex };
+  return { price: p.price + ex.reduce((s, a) => s + a.price, 0), emails: baseEmails(p) + ex.reduce((s, a) => s + (a.emails || 0), 0), guests: (p.guests || 0) + ex.reduce((s, a) => s + (a.guests || 0), 0), ex };
 }
 function totLine(id) {
   const t = selTot(id);
-  return t.ex.length ? `Totale €${fmtN(t.price)} + IVA · ${fmtN(t.emails)} email in tutto` : '';
+  return t.ex.length ? `Totale €${fmtN(t.price)} + IVA · ${fmtN(t.guests)} ospiti · ${fmtN(t.emails)} email` : '';
 }
 
 document.querySelectorAll('[data-brand]').forEach(e => e.textContent = C.BRAND);
@@ -341,7 +341,7 @@ function renderPlans() {
       <div class="price">€${p.price}<small> ${esc(p.note)}</small></div>
       <div class="vatn">+ IVA ${C.VAT}% · ${euro(p.price * (1 + C.VAT / 100))} totale</div>
       <div class="lim">${p.limits.map(l => `<div>${esc(l)}</div>`).join('')}</div>
-      ${ADDONS.length ? `<div class="addons" data-plan="${p.id}"><div class="adt">Email extra</div>${ADDONS.map(a => `<label><input type="checkbox" data-ad="${a.id}" ${SEL[p.id].has(a.id) ? 'checked' : ''}> ${esc(a.label)} <b>€ ${fmtN(a.price)}</b></label>`).join('')}<div class="tot" id="tot_${p.id}">${totLine(p.id)}</div></div>` : ''}
+      ${ADDONS.length ? `<div class="addons" data-plan="${p.id}"><div class="adt">Extra</div>${ADDONS.map(a => `<label><input type="checkbox" data-ad="${a.id}" ${SEL[p.id].has(a.id) ? 'checked' : ''}> ${esc(a.label)} <b>€ ${fmtN(a.price)}</b></label>`).join('')}<div class="tot" id="tot_${p.id}">${totLine(p.id)}</div></div>` : ''}
       <ul>${p.features.map(f => `<li>${esc(f)}</li>`).join('')}</ul>
       <button class="btn ${p.highlight ? 'btn-c' : 'btn-o'}" onclick="openBuy('${p.id}')">Acquista ${esc(p.name)}</button>
     </div>`).join('');
@@ -367,9 +367,9 @@ const FAQ = [
   ['Quando ricevo l\'accesso?', 'Con PayPal o carta ricevi credenziali e codice di sblocco via email in pochi istanti. Con il bonifico appena vediamo l\'accredito (con il bonifico istantaneo pochi minuti, altrimenti 1–2 giorni lavorativi).'],
   ['Come carico la lista ospiti?', 'Da un file Excel o CSV: trascini il file, il sistema riconosce le colonne (nome, cognome, email, telefono…) e ti fa abbinare le altre. Puoi anche scaricare il nostro modello o aggiungere ospiti a mano.'],
   ['Posso aggiungere campi come intolleranze, tavolo o note?', 'Sì, i campi sono illimitati e li crei tu: testo, numero, sì/no o scelta da elenco. Puoi decidere quali mostrare all\'ingresso e quali evidenziare in rosso (es. allergie o VIP).'],
-  ['Come ricevono il QR code gli ospiti?', 'In tre modi: email personalizzata con il QR dentro, link al pass digitale da mandare su WhatsApp, oppure badge e inviti in PDF da stampare o allegare.'],
-  ['Quante email posso inviare agli ospiti?', 'Ogni pacchetto include un numero massimo di email di invito: Start 500, Pro 1.500, Business 5.000. Al momento dell\'acquisto puoi aggiungere pacchetti da 250, 500 o 1.000 email extra. I link WhatsApp e i badge PDF non consumano email.'],
-  ['Quanti dispositivi posso usare all\'ingresso?', 'Dipende dal pacchetto (3, 10 o fino a 50). Tutti i dispositivi sono sincronizzati: se un ospite entra dall\'ingresso A, l\'ingresso B lo vede come già entrato.'],
+  ['Come ricevono il QR code gli ospiti?', 'In tre modi: email personalizzata con il pulsante “Mostra il tuo QR-code” (e il QR anche in allegato), link al pass digitale da mandare su WhatsApp, oppure badge e inviti in PDF da stampare o allegare.'],
+  ['Quante email posso inviare agli ospiti?', 'Ogni pacchetto include un numero massimo di email di invito: Start 500, Pro 2.000, Business 5.000. Al momento dell\'acquisto puoi aggiungere pacchetti da 250, 500 o 1.000 email extra, e anche 250 ospiti in più. I link WhatsApp e i badge PDF non consumano email.'],
+  ['Quanti dispositivi posso usare all\'ingresso?', 'Dipende dal pacchetto: 3 con Start, 5 con Pro, 10 con Business. Tutti i dispositivi sono sincronizzati: se un ospite entra dall\'ingresso A, l\'ingresso B lo vede come già entrato.'],
   ['E se all\'evento manca internet?', 'L\'app scarica la lista sul dispositivo e continua a funzionare anche offline. I check-in vengono salvati e sincronizzati appena torna la connessione. Consigliamo comunque un hotspot di riserva se usi più ingressi.'],
   ['Serve un lettore QR?', 'No, basta la fotocamera di smartphone o tablet. Se preferisci, su PC funziona anche con i lettori barcode USB o Bluetooth.'],
   ['Posso mettere il mio logo e i miei colori?', 'Sì, su tutti i pacchetti: app di accredito, inviti, pass e badge prendono logo e colori del tuo evento. Con Business è white label totale: nessun riferimento al nostro marchio, ideale se rivendi il servizio.'],
@@ -389,8 +389,8 @@ document.getElementById('lt').href = C.LEGAL.terms; document.getElementById('lp'
 
 // prezzi reali dal server (se configurato)
 if (C.API_URL) api('getPlans').then(d => {
-  PLANS = PLANS.map(p => d.plans[p.id] ? Object.assign({}, p, { price: d.plans[p.id].price }) : p);
-  if (d.addons) ADDONS = ADDONS.map(a => d.addons[a.id] ? Object.assign({}, a, { price: d.addons[a.id].price, emails: d.addons[a.id].emails }) : a);
+  PLANS = PLANS.map(p => d.plans[p.id] ? Object.assign({}, p, { price: d.plans[p.id].price, guests: d.plans[p.id].guests, emails: d.plans[p.id].emails }) : p);
+  if (d.addons) ADDONS = ADDONS.filter(a => d.addons[a.id]).map(a => Object.assign({}, a, { price: d.addons[a.id].price, emails: d.addons[a.id].emails || 0, guests: d.addons[a.id].guests || 0 }));
   renderPlans();
 }).catch(() => {});
 
@@ -411,7 +411,7 @@ function openBuy(id) {
   buy.showModal();
 }
 function drawExs() {
-  $('exs').innerHTML = ADDONS.length ? `<div class="adt">Email extra (facoltative)</div>` + ADDONS.map(a => `<label><input type="checkbox" data-ex="${a.id}" ${SEL[cur].has(a.id) ? 'checked' : ''}> ${esc(a.label)} <b>€ ${fmtN(a.price)} + IVA</b></label>`).join('') : '';
+  $('exs').innerHTML = ADDONS.length ? `<div class="adt">Extra (facoltativi)</div>` + ADDONS.map(a => `<label><input type="checkbox" data-ex="${a.id}" ${SEL[cur].has(a.id) ? 'checked' : ''}> ${esc(a.label)} <b>€ ${fmtN(a.price)} + IVA</b></label>`).join('') : '';
   $('exs').querySelectorAll('[data-ex]').forEach(c => c.onchange = () => { c.checked ? SEL[cur].add(c.dataset.ex) : SEL[cur].delete(c.dataset.ex); summary(); renderPlans(); });
 }
 function summary() {
@@ -419,6 +419,7 @@ function summary() {
   $('sum').innerHTML = `<div><span>${C.BRAND} ${esc(p.name)}</span><span>${euro(p.price)}</span></div>` +
     t.ex.map(a => `<div><span>${esc(a.label)}</span><span>${euro(a.price)}</span></div>`).join('') +
     `<div><span>IVA ${C.VAT}%</span><span>${euro(iva)}</span></div><div class="t"><span>Totale</span><span>${euro(t.price + iva)}</span></div>` +
+    (t.guests ? `<div style="font-size:13px;color:var(--muted)"><span>Ospiti inclusi</span><span>${fmtN(t.guests)}</span></div>` : '') +
     (baseEmails(p) ? `<div style="font-size:13px;color:var(--muted)"><span>Email incluse</span><span>${fmtN(t.emails)}</span></div>` : '');
 }
 function showErr(m) { const e = $('err1'); e.textContent = m; e.style.display = 'block'; e.scrollIntoView({ block: 'nearest' }); }
@@ -477,7 +478,7 @@ async function payPal() {
     paypal.Buttons({
       style: { shape: 'pill', label: 'pay', height: 48 },
       createOrder: (data, actions) => actions.order.create({
-        purchase_units: [{ amount: { value: order.totale, currency_code: C.CURRENCY }, custom_id: order.orderId, description: C.BRAND + ' ' + order.plan.name + (SEL[cur].size ? ' + email extra' : '') }]
+        purchase_units: [{ amount: { value: order.totale, currency_code: C.CURRENCY }, custom_id: order.orderId, description: C.BRAND + ' ' + order.plan.name + (SEL[cur].size ? ' + extra' : '') }]
       }),
       onApprove: async (data, actions) => {
         $('ppb').innerHTML = '<p style="text-align:center">Conferma in corso…</p>';
