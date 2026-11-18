@@ -55,7 +55,7 @@ window.VARCO = {
     whatsapp: '390000000000',    // ← numero WhatsApp: solo cifre, con prefisso 39
     hours: 'Lun–Ven 9:00–19:00'
   },
-  LEGAL: { privacy: '#', terms: '#', cookie: '#' }  // link alle tue pagine legali
+  LEGAL: { privacy: 'privacy.html', terms: '#', cookie: 'cookie.html' }  // link alle pagine legali
 };
 
 /* ---------------- motore comune (non modificare) ---------------- */
