@@ -221,6 +221,8 @@ $('fL').onsubmit = async e => {
 function logout() {
   if (A.q.length && !confirm('Ci sono ' + A.q.length + ' ingressi non ancora sincronizzati. Uscire comunque?')) return;
   stopCam(); clearTimeout(A.syncT); localStorage.removeItem('vci_s'); A.s = null;
+  // privacy: all'uscita la lista ospiti non resta salvata sul dispositivo
+  try { if (A.ev) { localStorage.removeItem('vci_g_' + A.ev.id); if (!A.q.length) localStorage.removeItem('vci_q_' + A.ev.id); } localStorage.removeItem('vci_ev'); } catch (e) {}
   $('app').hidden = true; $('login').hidden = false; closeSheet();
 }
 
