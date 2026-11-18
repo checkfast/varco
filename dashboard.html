@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Dashboard · Varco</title>
+<title>Dashboard · Checkfast</title>
 <meta name="theme-color" content="#13141B">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -173,7 +173,7 @@ body{padding-bottom:64px}
 <!-- ============ AUTH ============ -->
 <div id="vAuth" class="auth" hidden>
   <div class="side">
-    <a class="logo" href="index.html"><i></i><span data-brand>Varco</span></a>
+    <a class="logo" href="index.html"><i></i><span data-brand>Checkfast</span></a>
     <div class="big">
       <h1>Ogni ospite,<br>al posto <em>giusto</em>.</h1>
       <p style="opacity:.7;margin-top:14px;max-width:380px">Liste, QR code, inviti e accrediti dal tuo evento, in un unico posto.</p>
@@ -194,7 +194,7 @@ body{padding-bottom:64px}
 
     <form id="fReg" hidden>
       <p class="small muted" style="margin-bottom:12px">Hai ricevuto un codice di sblocco (es. regalo o acquisto fatto da un'altra persona)? Crea qui il tuo account.</p>
-      <div class="f"><label class="l">Codice di sblocco</label><input class="inp" id="rCode" placeholder="VRC-XXXX-XXXX" required style="text-transform:uppercase"></div>
+      <div class="f"><label class="l">Codice di sblocco</label><input class="inp" id="rCode" placeholder="CHK-XXXX-XXXX" required style="text-transform:uppercase"></div>
       <div class="f"><label class="l">Nome e cognome</label><input class="inp" id="rNome" required></div>
       <div class="f"><label class="l">Email</label><input class="inp" id="rEmail" type="email" required></div>
       <div class="f"><label class="l">Password (min. 8 caratteri)</label><input class="inp" id="rPwd" type="password" minlength="8" autocomplete="new-password" required></div>
@@ -221,7 +221,7 @@ body{padding-bottom:64px}
 <!-- ============ APP ============ -->
 <div id="vApp" hidden>
   <div class="top"><div class="in">
-    <a class="logo" href="#" onclick="goHome();return false"><i></i><span data-brand>Varco</span></a>
+    <a class="logo" href="#" onclick="goHome();return false"><i></i><span data-brand>Checkfast</span></a>
     <div class="umenu">
       <button id="uBtn">👤</button>
       <div class="dd" id="uDD" hidden>
@@ -390,11 +390,11 @@ function renderHome() {
   <div class="grid ${free ? '' : 'g2'}">
     <div class="card"><h3 style="font-size:19px;margin-bottom:8px">I tuoi pacchetti</h3>
       ${S.lic.length ? S.lic.map(l => `<div class="lic"><div><b>${esc(l.nome)}</b> <span class="pill ${l.attiva ? 'ok' : 'no'}">${l.attiva ? 'Attivo' : 'Scaduto'}</span><div class="small muted">${l.eventi >= 900 ? 'Eventi illimitati' : l.eventiUsati + '/' + l.eventi + ' eventi usati'} · ${l.ospiti} ospiti/evento · ${l.dispositivi} dispositivi${l.emailMax ? ' · ' + l.emailUsate + '/' + l.emailMax + ' email usate' : ''}${l.whiteLabel ? ' · White label' : ''}</div></div><div class="small muted" style="text-align:right">Scade il<br><b>${new Date(l.scadenza).toLocaleDateString('it-IT')}</b></div></div>`).join('') : '<p class="muted small">Nessun pacchetto attivo.</p>'}
-      ${free ? `<details style="margin-top:14px"><summary class="small muted" style="cursor:pointer">Hai un altro codice di sblocco?</summary><div style="display:flex;gap:8px;margin-top:10px;max-width:420px"><input class="inp" id="actCode" placeholder="VRC-XXXX-XXXX" style="text-transform:uppercase"><button class="btn i" id="actBtn">Attiva</button></div></details>` : ''}
+      ${free ? `<details style="margin-top:14px"><summary class="small muted" style="cursor:pointer">Hai un altro codice di sblocco?</summary><div style="display:flex;gap:8px;margin-top:10px;max-width:420px"><input class="inp" id="actCode" placeholder="CHK-XXXX-XXXX" style="text-transform:uppercase"><button class="btn i" id="actBtn">Attiva</button></div></details>` : ''}
     </div>
     ${free ? '' : `<div class="card"><h3 style="font-size:19px;margin-bottom:6px">Attiva un codice di sblocco</h3>
       <p class="small muted" style="margin-bottom:12px">Lo trovi nell'email di conferma acquisto.</p>
-      <div style="display:flex;gap:8px"><input class="inp" id="actCode" placeholder="VRC-XXXX-XXXX" style="text-transform:uppercase"><button class="btn i" id="actBtn">Attiva</button></div>
+      <div style="display:flex;gap:8px"><input class="inp" id="actCode" placeholder="CHK-XXXX-XXXX" style="text-transform:uppercase"><button class="btn i" id="actBtn">Attiva</button></div>
       <p class="small muted" style="margin-top:12px">Ti serve un altro pacchetto? <a href="index.html#prezzi" target="_blank"><b>Acquista</b></a></p>
     </div>`}
   </div>
