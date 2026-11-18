@@ -156,10 +156,13 @@ table.gt{width:100%;border-collapse:separate;border-spacing:0;background:#fff;bo
 .feed div{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid #F0EBE3;font-size:14px}
 .map{width:100%;border-collapse:collapse;font-size:14px}.map td{padding:8px 6px;border-bottom:1px solid var(--line)}.map td:first-child{font-weight:700}
 /* toast/busy */
-#toasts{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:90;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
+#toasts{position:fixed;left:50%;bottom:58px;transform:translateX(-50%);z-index:90;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
 .toast{background:var(--ink);color:#fff;padding:12px 18px;border-radius:14px;font-weight:600;box-shadow:0 10px 30px rgba(0,0,0,.25);max-width:90vw;animation:tin .25s}
 .toast.err{background:var(--red)}.toast.ok{background:var(--mint)}
 @keyframes tin{from{opacity:0;transform:translateY(10px)}}
+.sitefoot{position:fixed;left:0;right:0;bottom:0;z-index:15;background:rgba(255,255,255,.96);border-top:1px solid var(--line);color:var(--muted);font-size:12px;line-height:1.4;text-align:center;padding:9px 16px calc(9px + env(safe-area-inset-bottom));backdrop-filter:blur(4px)}
+body{padding-bottom:64px}
+.sup .fg2{gap:0 12px}.sup textarea{resize:vertical;min-height:120px}
 #busy{position:fixed;inset:0;z-index:80;background:rgba(246,243,238,.55);display:grid;place-items:center}
 .spin{width:38px;height:38px;border:4px solid #E3DDD3;border-top-color:var(--coral);border-radius:50%;animation:sp .7s linear infinite}
 @keyframes sp{to{transform:rotate(360deg)}}
@@ -224,7 +227,7 @@ table.gt{width:100%;border-collapse:separate;border-spacing:0;background:#fff;bo
       <div class="dd" id="uDD" hidden>
         <button onclick="goHome()">🏠 I miei eventi</button>
         <button onclick="mPwd()">🔑 Cambia password</button>
-        <a id="helpLink" target="_blank">💬 Assistenza</a>
+        <button onclick="mSupport()">💬 Assistenza</button>
         <button onclick="logout()">↩ Esci</button>
       </div>
     </div>
@@ -247,7 +250,6 @@ const $ = id => document.getElementById(id);
 document.querySelectorAll('[data-brand]').forEach(e => e.textContent = C.BRAND);
 document.querySelectorAll('[data-payoff]').forEach(e => e.textContent = C.BRAND + ' · ' + C.PAYOFF);
 document.title = 'Dashboard · ' + C.BRAND;
-$('helpLink').href = 'https://wa.me/' + C.CONTACTS.whatsapp + '?text=' + encodeURIComponent('Ciao, ho bisogno di aiuto con ' + C.BRAND);
 
 function toast(m, t) { const d = document.createElement('div'); d.className = 'toast ' + (t || ''); d.textContent = m; $('toasts').appendChild(d); setTimeout(() => d.remove(), 3800); }
 function busy(on) { $('busy').hidden = !on; }
@@ -398,8 +400,32 @@ function renderHome() {
   </div>
   <h2 style="font-size:24px;margin:30px 0 0">I tuoi eventi</h2>
   ${S.events.length ? `<div class="evs">${S.events.map(e => `<div class="ev" onclick="openEvent('${e.id}')"><h3>${esc(e.nome)}</h3><div class="small muted">📅 ${esc(fmtData(e.data) || 'Data da definire')}</div><div class="small muted">📍 ${esc(e.luogo || '—')}</div><div style="margin-top:12px;display:flex;gap:6px;flex-wrap:wrap"><span class="pill">Codice app ${esc(e.codiceApp)}</span><span class="pill">${esc(e.limiti.piano)}</span></div></div>`).join('')}</div>`
-    : `<div class="empty" style="margin-top:16px"><div style="font-size:40px">🎟️</div><p style="margin:8px 0 14px">Nessun evento ancora.</p>${free ? '<button class="btn c" onclick="mNewEvent()">Crea il primo evento</button>' : ''}</div>`}`;
+    : `<div class="empty" style="margin-top:16px"><div style="font-size:40px">🎟️</div><p style="margin:8px 0 14px">Nessun evento ancora.</p>${free ? '<button class="btn c" onclick="mNewEvent()">Crea il primo evento</button>' : ''}</div>`}
+  <div class="card sup" style="margin-top:34px;max-width:760px"><h3 style="font-size:19px;margin-bottom:4px">💬 Hai bisogno di aiuto?</h3><p class="small muted" style="margin-bottom:14px">Scrivici qui: rispondiamo via email il prima possibile.</p>${supForm('h')}</div>`;
+  bindSup('h');
   $('actBtn').onclick = () => run(async () => { await call('activate', { code: $('actCode').value }); toast('Pacchetto attivato 🎉', 'ok'); goHome(); });
+}
+/* ---------- modulo assistenza ---------- */
+function supForm(p) {
+  const u = S.user || {};
+  return `<div class="fg2"><div class="f"><label class="l">Nome e cognome</label><input class="inp" id="${p}sN" value="${esc(u.nome || '')}"></div><div class="f"><label class="l">Azienda</label><input class="inp" id="${p}sA" value="${esc(u.azienda || '')}"></div></div>
+  <div class="fg2"><div class="f"><label class="l">Email per la risposta</label><input class="inp" id="${p}sE" type="email" value="${esc(u.email || '')}"></div><div class="f"><label class="l">Telefono</label><input class="inp" id="${p}sT" type="tel" value="${esc(u.telefono || '')}"></div></div>
+  <div class="f"><label class="l">La tua richiesta *</label><textarea class="inp" id="${p}sM" rows="5" maxlength="4000" placeholder="Descrivi il problema o la domanda. Se riguarda un evento, indica quale."></textarea></div>
+  <div style="text-align:right"><button class="btn c" id="${p}sS">Invia richiesta</button></div>`;
+}
+function bindSup(p, after) {
+  $(p + 'sS').onclick = () => run(async () => {
+    const msg = $(p + 'sM').value.trim();
+    if (msg.length < 5) { $(p + 'sM').focus(); throw new Error('Scrivi la tua richiesta.'); }
+    await call('support', { nome: $(p + 'sN').value, azienda: $(p + 'sA').value, email: $(p + 'sE').value, telefono: $(p + 'sT').value, msg, ev: S.ev ? S.ev.id : '' });
+    $(p + 'sM').value = '';
+    toast('Richiesta inviata ✓ Ti risponderemo via email.', 'ok');
+    if (after) after();
+  });
+}
+function mSupport() {
+  openModal(mHead('Contatta l\'assistenza') + `<div class="mb sup"><p class="small muted" style="margin-bottom:14px">Rispondiamo via email il prima possibile.</p>${supForm('m')}</div>`);
+  bindSup('m', closeModal); $('msM').focus();
 }
 function mNewEvent() {
   openModal(mHead('Nuovo evento') + `<div class="mb"><div class="f"><label class="l">Nome evento *</label><input class="inp" id="neN" placeholder="Es. Gala di Natale 2026"></div><div class="fg2"><div class="f"><label class="l">Data e ora</label><input class="inp" id="neD" type="datetime-local"></div><div class="f"><label class="l">Luogo</label><input class="inp" id="neL" placeholder="Es. Villa Rosa, Bari"></div></div><p class="small muted">Userai un evento del tuo pacchetto. Nome, data e luogo si possono modificare dopo.</p></div><div class="mf"><button class="btn g" onclick="closeModal()">Annulla</button><button class="btn c" id="neS">Crea evento</button></div>`);
@@ -1236,5 +1262,6 @@ async function exportReport() {
 
 boot();
 </script>
+<footer class="sitefoot">Checkfast® fa parte di With You Srl – Milano, Via Privata del Gonfalone, 3 · P.I. 10940150963</footer>
 </body>
 </html>
