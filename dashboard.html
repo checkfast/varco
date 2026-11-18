@@ -262,7 +262,7 @@ async function call(a, d, quiet) {
 async function run(fn) { try { return await fn(); } catch (e) { if (e.message !== 'AUTH') toast(e.message, 'err'); } }
 function openModal(html, wide) { $('mbox').className = 'mbox' + (wide ? ' w' : ''); $('mbox').innerHTML = html; $('modal').hidden = false; }
 function closeModal() { $('modal').hidden = true; $('mbox').innerHTML = ''; }
-$('modal').addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); });
+$('modal').addEventListener('click', e => { if (e.target.id === 'modal' && !S.modalLock) closeModal(); });
 function mHead(t) { return `<div class="mh"><h3>${esc(t)}</h3><button class="mx" onclick="closeModal()">×</button></div>`; }
 function loadLib(src, test) { return new Promise((res, rej) => { if (test()) return res(); const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = () => rej(new Error('Impossibile caricare una libreria: controlla la connessione')); document.head.appendChild(s); }); }
 const libXLSX = () => loadLib('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js', () => window.XLSX);
@@ -307,6 +307,36 @@ function mPwd() {
   $('pSave').onclick = () => run(async () => { await call('changePassword', { old: $('pOld').value, password: $('pNew').value }); closeModal(); toast('Password aggiornata', 'ok'); });
 }
 
+/* ---------- Regolamento d'uso: accettazione obbligatoria ---------- */
+async function askRules(ver) {
+  let body = '';
+  try {
+    const html = await fetch('regolamento.html', { cache: 'no-cache' }).then(x => x.text());
+    const el = new DOMParser().parseFromString(html, 'text/html').getElementById('reg');
+    el.querySelectorAll('[data-brand]').forEach(e => e.textContent = C.BRAND);
+    const h1 = el.querySelector('h1'); if (h1) h1.remove();
+    body = el.innerHTML;
+  } catch (e) { body = '<p>Leggi il regolamento completo qui: <a href="regolamento.html" target="_blank">Regolamento d\'uso</a>.</p>'; }
+  return new Promise(resolve => {
+    S.modalLock = true;
+    openModal(`<style>.regtxt h2{font-size:16px;margin:18px 0 6px}.regtxt ul{padding-left:20px;margin:0 0 10px}.regtxt li,.regtxt p{margin:0 0 6px}.regtxt .upd{color:var(--muted);font-size:12.5px;margin-bottom:10px}.regtxt .box{background:#FFF8F3;border:1px solid #FFD9CC;border-radius:10px;padding:10px 12px;margin:8px 0}</style><div class="mh"><h3>Regolamento d'uso del servizio</h3></div>
+      <div class="mb"><p class="small" style="margin:0 0 12px">Prima di usare ${esc(C.BRAND)} leggi e accetta il regolamento. Ti basta farlo una volta.</p>
+      <div id="rgTxt" class="regtxt" style="max-height:48vh;overflow:auto;background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 18px;font-size:14px;line-height:1.6">${body}</div>
+      <p class="small muted" id="rgHint" style="margin:8px 0 0">⬇ Scorri fino in fondo per poter accettare.</p>
+      <label style="display:flex;gap:10px;align-items:flex-start;margin-top:14px;cursor:pointer;font-size:14.5px"><input type="checkbox" id="rgChk" disabled style="accent-color:var(--coral);width:20px;height:20px;margin-top:1px;flex:none">
+      <span>Ho letto e accetto il <a href="regolamento.html" target="_blank">Regolamento d'uso</a>. Dichiaro di essere l'unico responsabile dei dati che inserisco nella piattaforma e delle comunicazioni inviate ai miei ospiti, e che ${esc(C.BRAND)} e WITH YOU S.R.L. non sono responsabili delle mie azioni verso gli ospiti o verso terzi.</span></label></div>
+      <div class="mf"><button class="btn g" id="rgOut">Esci</button><button class="btn c" id="rgOk" disabled>Accetto e continuo</button></div>`, true);
+    const box = $('rgTxt'), chk = $('rgChk');
+    const unlock = () => { if (box.scrollTop + box.clientHeight >= box.scrollHeight - 30) { chk.disabled = false; $('rgHint').textContent = '✓ Ora puoi accettare.'; } };
+    box.addEventListener('scroll', unlock); setTimeout(unlock, 50);
+    chk.onchange = () => { $('rgOk').disabled = !chk.checked; };
+    $('rgOut').onclick = () => { S.modalLock = false; logout(); };
+    $('rgOk').onclick = () => run(async () => {
+      const r = await call('acceptRules', { accept: true, ver: ver, ua: navigator.userAgent });
+      S.user = r.user; S.modalLock = false; closeModal(); toast('Regolamento accettato ✓', 'ok'); resolve();
+    });
+  });
+}
 async function boot() {
   if (!C.API_URL) { $('vAuth').hidden = false; toast('Configura API_URL in config.js', 'err'); return; }
   if (!S.token) { $('vAuth').hidden = false; return; }
@@ -315,6 +345,7 @@ async function boot() {
     S.user = r.user; S.lic = r.licenses;
     $('uBtn').textContent = '👤 ' + (r.user.nome || r.user.email);
     $('vAuth').hidden = true; $('vApp').hidden = false;
+    if (!r.user.reg) await askRules(r.user.regVer);
     const ev = new URLSearchParams(location.hash.slice(1)).get('ev');
     if (ev) openEvent(ev); else goHome();
   });
