@@ -6,6 +6,8 @@
 <title>Checkfast · Accrediti digitali per eventi con lista e QR code</title>
 <meta name="description" content="Check-in ospiti con lista digitale e QR code. Carichi l'Excel, invii gli inviti, accogli gli ospiti da smartphone e tablet. Tre pacchetti tutto incluso.">
 <meta name="theme-color" content="#13141B">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="config.js"></script>
@@ -26,6 +28,7 @@ a{color:inherit}
 nav.top{position:sticky;top:0;z-index:20;background:rgba(246,243,238,.88);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
 nav.top .wrap{display:flex;align-items:center;justify-content:space-between;height:66px}
 .logo{display:flex;align-items:center;gap:10px;font:800 22px 'Bricolage Grotesque';text-decoration:none}
+.logo img{height:34px;width:auto;display:block}
 .logo i{width:30px;height:30px;border-radius:9px;background:var(--ink);position:relative;display:block}
 .logo i:before,.logo i:after{content:"";position:absolute;top:7px;bottom:7px;width:5px;border-radius:3px;background:var(--coral)}
 .logo i:before{left:8px}.logo i:after{right:8px;background:#fff}
@@ -168,7 +171,7 @@ dialog::backdrop{background:rgba(19,20,27,.6);backdrop-filter:blur(3px)}
 <body>
 
 <nav class="top"><div class="wrap">
-  <a href="#" class="logo"><i></i><span data-brand>Checkfast</span></a>
+  <a href="#" class="logo"><img src="logo-black.png" alt="Checkfast"></a>
   <div class="links">
     <a href="#come" class="hide">Come funziona</a>
     <a href="#prezzi" class="hide">Prezzi</a>
@@ -266,7 +269,7 @@ dialog::backdrop{background:rgba(19,20,27,.6);backdrop-filter:blur(3px)}
 <footer id="contatti"><div class="wrap">
   <div class="cols">
     <div>
-      <a href="#" class="logo" style="color:#fff"><i style="background:#fff"></i><span data-brand>Checkfast</span></a>
+      <a href="#" class="logo"><img src="logo-white.png" alt="Checkfast"></a>
       <p style="margin-top:14px;max-width:340px" data-payoff></p>
     </div>
     <div>
