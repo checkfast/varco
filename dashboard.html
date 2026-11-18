@@ -435,6 +435,11 @@ const HELP_CSS = '.hlp{margin:-8px 0 20px}.hlp-t{background:none;border:0;paddin
 const HELP = {
   ospiti: `<h4>👥 Gestire la lista ospiti</h4><ol>
     <li><b>Importa Excel</b>: carica il tuo file .xlsx o .csv. Il sistema riconosce nome, cognome, email e telefono e ti chiede come abbinare le altre colonne. Se non hai un file pronto, scarica il <b>Modello</b>.</li>
+    <li><b>Importare quando hai già degli ospiti</b>: i nuovi nominativi si aggiungono. Per chi è già in lista (stessa email o, senza email, stesso nome e cognome) scegli tu:
+      <ul style="margin-top:4px"><li><b>Saltalo</b>: resta com'è (scelta predefinita).</li>
+      <li><b>Aggiorna i suoi dati</b>: prende dal file telefono, tavolo, azienda e gli altri campi compilati, ma <b>mantiene QR, invito già inviato e check-in</b>. Ideale quando ricevi un Excel corretto all'ultimo momento.</li>
+      <li><b>Aggiungilo comunque</b>: crea un doppione (solo per veri omonimi).</li></ul>
+      <b>Sostituisci la lista attuale</b> cancella tutti gli ospiti presenti: usala solo prima di inviare gli inviti, perché i QR già spediti smettono di funzionare.</li>
     <li><b>＋ Ospite</b>: aggiungi o modifica un ospite a mano. Clicca su una riga per aprirne la scheda (da lì trovi anche il link WhatsApp del pass).</li>
     <li><b>Cerca e filtra</b>: la barra di ricerca trova nome, email, telefono o qualsiasi campo. Il menu accanto mostra Entrati, Non entrati, Non invitati o Senza email.</li>
     <li><b>Ordina</b>: clicca sul titolo di una colonna o sulle frecce ▲▼.</li>
@@ -689,8 +694,12 @@ function mImport(head, data, auto) {
     <p class="small muted" style="margin-bottom:12px">Controlla a cosa corrisponde ogni colonna del tuo file.</p>
     <table class="map">${head.map((h, i) => `<tr><td>${esc(h || '(senza titolo)')}<div class="small muted" style="font-weight:400">${esc(data.slice(0, 2).map(r => r[i]).filter(Boolean).join(' · ').slice(0, 60))}</div></td><td style="width:55%"><select class="inp" data-col="${i}">${opts(h)}</select></td></tr>`).join('')}</table>
     <div style="margin-top:16px">
-      <label class="toggle"><input type="checkbox" id="imDup" checked> Salta i doppioni (stessa email o stesso nome)</label>
-      <label class="toggle"><input type="checkbox" id="imRep"> <span>Sostituisci la lista attuale <span class="small muted">(${S.guests.length} ospiti verranno rimossi)</span></span></label>
+      ${S.guests.length ? `<div class="small" style="font-weight:800;margin-bottom:6px">Se un ospite del file è già in lista (stessa email o, senza email, stesso nome e cognome):</div>
+      <label style="display:flex;gap:10px;align-items:flex-start;margin:8px 0;cursor:pointer"><input type="radio" style="accent-color:var(--coral);width:18px;height:18px;margin-top:2px;flex:none" name="imDupM" value="skip" checked> <span>Saltalo <span class="small muted">– lascia com'è l'ospite già presente</span></span></label>
+      <label style="display:flex;gap:10px;align-items:flex-start;margin:8px 0;cursor:pointer"><input type="radio" style="accent-color:var(--coral);width:18px;height:18px;margin-top:2px;flex:none" name="imDupM" value="update"> <span>Aggiorna i suoi dati <span class="small muted">– prende telefono, campi ecc. dal file; QR, invito e check-in restano invariati</span></span></label>
+      <label style="display:flex;gap:10px;align-items:flex-start;margin:8px 0;cursor:pointer"><input type="radio" style="accent-color:var(--coral);width:18px;height:18px;margin-top:2px;flex:none" name="imDupM" value="add"> <span>Aggiungilo comunque <span class="small muted">– crea un doppione</span></span></label>
+      <hr style="border:0;border-top:1px solid var(--line);margin:12px 0">
+      <label class="toggle"><input type="checkbox" id="imRep"> <span>Sostituisci la lista attuale <span class="small muted">(${S.guests.length} ospiti verranno rimossi, con i loro QR, inviti e check-in)</span></span></label>` : `<label class="toggle"><input type="checkbox" id="imSk" checked> Salta i doppioni presenti nel file (stessa email o stesso nome)</label>`}
     </div></div>
     <div class="mf"><button class="btn g" onclick="closeModal()">Annulla</button><button class="btn c" id="imGo">Importa</button></div>`, true);
   document.querySelectorAll('[data-col]').forEach(s => s.value = auto[s.dataset.col]);
@@ -713,16 +722,17 @@ function mImport(head, data, auto) {
       });
       return o;
     });
-    const dup = $('imDup').checked, rep = $('imRep').checked;
-    if (rep && !confirm('Sostituire tutta la lista attuale?')) return;
+    const dm = $('imSk') ? ($('imSk').checked ? 'skip' : 'add') : (document.querySelector('[name=imDupM]:checked') || {}).value || 'skip';
+    const rep = !!($('imRep') && $('imRep').checked), dup = dm !== 'add', upd = dm === 'update' && !rep;
+    if (rep && !confirm('Sostituire tutta la lista attuale? Gli ospiti attuali verranno rimossi e i QR già inviati smetteranno di funzionare.')) return;
     if (changed) await saveCfg();
-    let added = 0, skipped = 0;
+    let added = 0, skipped = 0, updated = 0;
     for (let i = 0; i < rowsOut.length; i += 400) {
-      const r = await call('importGuests', { eventId: S.ev.id, rows: rowsOut.slice(i, i + 400), mode: rep && i === 0 ? 'replace' : 'append', skipDup: dup });
-      added += r.added; skipped += r.skipped;
+      const r = await call('importGuests', { eventId: S.ev.id, rows: rowsOut.slice(i, i + 400), mode: rep && i === 0 ? 'replace' : 'append', skipDup: dup, update: upd });
+      added += r.added; skipped += r.skipped; updated += r.updated || 0;
     }
     await reloadGuests(); closeModal(); renderTab();
-    toast(`Importati ${added} ospiti${skipped ? ', ' + skipped + ' saltati' : ''}`, 'ok');
+    toast(`Importati ${added} nuovi ospiti${updated ? ', ' + updated + ' aggiornati' : ''}${skipped ? ', ' + skipped + ' saltati' : ''}`, 'ok');
   });
 }
 function rowsForExport(list) {
