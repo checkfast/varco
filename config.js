@@ -1,10 +1,10 @@
 /* =====================================================================
-   VARCO · CONFIGURAZIONE FRONTEND — modifica SOLO questa sezione
+   CHECKFAST · CONFIGURAZIONE FRONTEND — modifica SOLO questa sezione
    (usata da index.html, dashboard.html, checkin.html, invito.html)
    ===================================================================== */
 window.VARCO = {
   API_URL: 'https://script.google.com/macros/s/AKfycbxsMvG3pYUepSPpsr9HJj3CunLuDNKsOfissK3e57-okNYxZNk41lbUV0AECixP_3Iqyg/exec',
-  BRAND: 'Varco',
+  BRAND: 'Checkfast',
   PAYOFF: 'Accrediti digitali per eventi',
   PAYPAL_CLIENT_ID: '',        // ← Client ID PayPal LIVE. Vuoto = solo bonifico
   CURRENCY: 'EUR',
@@ -14,13 +14,13 @@ window.VARCO = {
   PLANS: [
     { id: 'START', name: 'Start', price: 89, note: 'una tantum', for: 'Il singolo evento', guests: 250, emails: 500,
       limits: ['1 evento', 'Fino a 250 ospiti', '3 dispositivi in contemporanea', 'Attivo 60 giorni', 'Max 500 email'],
-      features: ['Lista digitale + QR univoco per ospite', 'Import da Excel/CSV', 'Campi personalizzati (intolleranze, tavolo, note…)', 'Badge e inviti PDF stampabili', 'Inviti email personalizzati e link WhatsApp', 'Logo e colori del tuo evento', 'Più ingressi con postazioni nominate', 'Ospiti aggiunti al volo dall\'app', 'Report live + export Excel', 'Email con la scritta “Varco by With You Agency”'] },
+      features: ['Lista digitale + QR univoco per ospite', 'Import da Excel/CSV', 'Campi personalizzati (intolleranze, tavolo, note…)', 'Badge e inviti PDF stampabili', 'Inviti email personalizzati e link WhatsApp', 'Logo e colori del tuo evento', 'Più ingressi con postazioni nominate', 'Ospiti aggiunti al volo dall\'app', 'Report live + export Excel', 'Email con la scritta “Checkfast by With You Agency”'] },
     { id: 'PRO', name: 'Pro', price: 249, note: 'una tantum', for: 'Eventi aziendali, congressi, wedding', highlight: true, guests: 1000, emails: 2000,
       limits: ['1 evento', 'Fino a 1.000 ospiti', '5 dispositivi in contemporanea', 'Attivo 75 giorni', 'Max 2.000 email'],
-      features: ['Tutto di Start', 'Email agli ospiti senza la scritta “Varco by With You Agency”'] },
+      features: ['Tutto di Start', 'Email agli ospiti senza la scritta “Checkfast by With You Agency”'] },
     { id: 'BUSINESS', name: 'Business', price: 790, note: 'una tantum', for: 'Grandi eventi e agenzie che rivendono', guests: 2500, emails: 5000,
       limits: ['1 evento', 'Fino a 2.500 ospiti', 'Fino a 10 dispositivi', 'Attivo 90 giorni', 'Max 5.000 email'],
-      features: ['Tutto di Pro', 'White label totale: nessun riferimento a Varco su email, app e pass', 'Più eventi? Chiedi un preventivo Enterprise'] }
+      features: ['Tutto di Pro', 'White label totale: nessun riferimento a Checkfast su email, app e pass', 'Più eventi? Chiedi un preventivo Enterprise'] }
   ],
 
   // Extra acquistabili con il pacchetto (prezzi IVA esclusa). Tienili allineati con ADDONS in Code.gs
