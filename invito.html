@@ -30,6 +30,7 @@ body{font-family:Manrope,system-ui,sans-serif;background:#EFEBE4;color:#18181d;m
 .btn{border:0;border-radius:14px;padding:13px;font:700 14px Manrope;cursor:pointer;background:#F1EDE6;color:#18181d;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:6px}
 .btn.p{background:var(--p);color:#fff}
 .foot{font-size:11px;color:#aaa;margin-top:16px}
+.foot img{height:14px;vertical-align:-3px;margin-left:5px;opacity:.55}
 .msg{text-align:center;padding:40px 24px}
 .spin{width:36px;height:36px;border:4px solid #e6e0d6;border-top-color:var(--p);border-radius:50%;animation:s .7s linear infinite;margin:0 auto}
 @keyframes s{to{transform:rotate(360deg)}}
@@ -69,7 +70,7 @@ function ics(ev) {
       <div class="body">${d.checkin ? '<div class="ok">✓ Accredito già effettuato</div>' : ''}<div class="who">Ospite</div><div class="name">${esc(nm)}</div>
       <div id="qr"></div><div class="hint">Mostra questo QR code all'ingresso.<br>Alza la luminosità dello schermo.</div>
       <div class="acts"><button class="btn p" id="save">⬇ Salva pass</button>${cal ? `<a class="btn" href="${cal}" download="evento.ics">📅 Calendario</a>` : ''}${ev.luogo ? `<a class="btn" style="grid-column:1/-1" target="_blank" href="https://maps.google.com/?q=${encodeURIComponent(ev.luogo)}">📍 Come arrivare</a>` : ''}</div>
-      ${d.whiteLabel ? '' : `<div class="foot">Accrediti con ${esc(C.BRAND)}</div>`}</div>`;
+      ${d.whiteLabel ? '' : `<div class="foot">Accrediti con<img src="logo-black.png" alt="${esc(C.BRAND)}"></div>`}</div>`;
     const qc = qrCanvas(d.qr, 8); document.getElementById('qr').appendChild(qc);
     document.getElementById('save').onclick = () => {
       const W = 800, H = 1100, c = document.createElement('canvas'); c.width = W; c.height = H; const x = c.getContext('2d');
