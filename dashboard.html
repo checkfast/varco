@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Dashboard · Checkfast</title>
 <meta name="theme-color" content="#13141B">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
@@ -27,6 +29,7 @@ label.l{display:block;font-size:12px;font-weight:700;color:#5b5a61;margin:0 0 5p
 .card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:22px}
 .muted{color:var(--muted)}.small{font-size:13px}
 .logo{display:flex;align-items:center;gap:10px;font:800 21px 'Bricolage Grotesque';text-decoration:none;color:inherit}
+.logo img{height:30px;width:auto;display:block}
 .logo i{width:28px;height:28px;border-radius:8px;background:var(--ink);position:relative;display:block}
 .logo i:before,.logo i:after{content:"";position:absolute;top:7px;bottom:7px;width:4px;border-radius:3px;background:var(--coral)}
 .logo i:before{left:8px}.logo i:after{right:8px;background:#fff}
@@ -173,7 +176,7 @@ body{padding-bottom:64px}
 <!-- ============ AUTH ============ -->
 <div id="vAuth" class="auth" hidden>
   <div class="side">
-    <a class="logo" href="index.html"><i></i><span data-brand>Checkfast</span></a>
+    <a class="logo" href="index.html"><img src="logo-white.png" alt="Checkfast"></a>
     <div class="big">
       <h1>Ogni ospite,<br>al posto <em>giusto</em>.</h1>
       <p style="opacity:.7;margin-top:14px;max-width:380px">Liste, QR code, inviti e accrediti dal tuo evento, in un unico posto.</p>
@@ -221,7 +224,7 @@ body{padding-bottom:64px}
 <!-- ============ APP ============ -->
 <div id="vApp" hidden>
   <div class="top"><div class="in">
-    <a class="logo" href="#" onclick="goHome();return false"><i></i><span data-brand>Checkfast</span></a>
+    <a class="logo" href="#" onclick="goHome();return false"><img src="logo-white.png" alt="Checkfast" style="height:26px"></a>
     <div class="umenu">
       <button id="uBtn">👤</button>
       <div class="dd" id="uDD" hidden>
@@ -1262,6 +1265,6 @@ async function exportReport() {
 
 boot();
 </script>
-<footer class="sitefoot">Checkfast® fa parte di With You Srl – Milano, Via Privata del Gonfalone, 3 · P.I. 10940150963</footer>
+<footer class="sitefoot"><img src="logo-black.png" alt="Checkfast" style="height:14px;vertical-align:-3px;margin-right:8px">Checkfast® fa parte di With You Srl – Milano, Via Privata del Gonfalone, 3 · P.I. 10940150963</footer>
 </body>
 </html>
