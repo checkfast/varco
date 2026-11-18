@@ -307,7 +307,7 @@ dialog::backdrop{background:rgba(19,20,27,.6);backdrop-filter:blur(3px)}
       <label><input type="radio" name="pm" value="BONIFICO"> Bonifico bancario</label>
     </div>
     <div class="sum" id="sum"></div>
-    <label class="chk"><input type="checkbox" id="o_priv"> <span>Accetto i <a id="lt" href="#" target="_blank">termini di servizio</a> e l'<a id="lp" href="#" target="_blank">informativa privacy</a>. Il servizio è digitale e viene attivato subito dopo il pagamento.</span></label>
+    <label class="chk"><input type="checkbox" id="o_priv"> <span>Accetto i <a id="lt" href="#" target="_blank">termini di servizio</a>, il <a id="lr" href="regolamento.html" target="_blank">regolamento d'uso</a> e l'<a id="lp" href="#" target="_blank">informativa privacy</a>. Il servizio è digitale e viene attivato subito dopo il pagamento.</span></label>
     <button class="btn btn-c" id="go" style="width:100%;justify-content:center">Procedi al pagamento</button>
   </div>
   <div class="db" id="step2" hidden></div>
@@ -383,7 +383,7 @@ const co = C.COMPANY, ct = C.CONTACTS;
 document.getElementById('ctc').innerHTML = `✉️ <a href="mailto:${esc(ct.email)}">${esc(ct.email)}</a><br>📞 <a href="tel:${esc(ct.phone.replace(/\s/g, ''))}">${esc(ct.phone)}</a><br>💬 <a href="https://wa.me/${esc(ct.whatsapp)}" target="_blank">WhatsApp</a><br>🕘 ${esc(ct.hours)}`;
 document.getElementById('cmp').innerHTML = `${esc(co.name)}<br>${esc(co.address)}<br>P.IVA ${esc(co.vat)} · C.F. ${esc(co.cf)}<br>REA ${esc(co.rea)} · Cap. soc. ${esc(co.capital)}<br>PEC ${esc(co.pec)} · SDI ${esc(co.sdi)}`;
 document.getElementById('copy').textContent = '© ' + new Date().getFullYear() + ' ' + co.name + ' · ' + C.BRAND + ' è un servizio di ' + co.name;
-document.getElementById('legalLinks').innerHTML = `<a href="${C.LEGAL.privacy}">Privacy</a> · <a href="${C.LEGAL.cookie}">Cookie</a> · <a href="${C.LEGAL.terms}">Termini di servizio</a>`;
+document.getElementById('legalLinks').innerHTML = `<a href="${C.LEGAL.privacy}">Privacy</a> · <a href="${C.LEGAL.cookie}">Cookie</a> · <a href="${C.LEGAL.rules || 'regolamento.html'}">Regolamento d'uso</a> · <a href="${C.LEGAL.terms}">Termini di servizio</a>`;
 document.getElementById('wa').href = 'https://wa.me/' + ct.whatsapp + '?text=' + encodeURIComponent('Ciao, vorrei informazioni su ' + C.BRAND);
 document.getElementById('lt').href = C.LEGAL.terms; document.getElementById('lp').href = C.LEGAL.privacy;
 
